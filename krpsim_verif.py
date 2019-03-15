@@ -17,7 +17,7 @@ def main():
     config = Config_structure()
     config.stock = setting.stock
     config.process = setting.process
-    
+
     env = Env(config)
     try:
         for action in setting.actions:

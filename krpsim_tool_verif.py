@@ -143,6 +143,11 @@ class Setting():
                 quantity = int(single_output[1])
             except:
                 raise ErrorInput("Process Error: Quantity must be a valid integer")
+            try:
+                delay = int(right[1])
+                p.duration = delay
+            except:
+                raise ErrorInput("Process Error: Delay must be a valid integer")
             p.output[output_name] = quantity
             if output_name not in self.stock.values():
                 self.stock[output_name] = 0
