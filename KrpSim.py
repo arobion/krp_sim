@@ -1,4 +1,7 @@
 import heapq
+import argparse
+from krpsim_parsing import parse_config_file
+from krpsim_solver import solver
 
 
 class KrpSim:
@@ -7,22 +10,22 @@ class KrpSim:
         self.delay = 0
         self.initial_place_tokens = {}
         self.transactions = {}
-        self.optimize = ""
+        self.optimize = []
         self.parse()
         self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transactions)
 
     def parse(self):
         # places
-        self.initial_place_tokens["euro"] = 10
-        self.initial_place_tokens["materiel"] = 0
-        self.initial_place_tokens["produit"] = 0
-        self.initial_place_tokens["client_content"] = 0
-        # transactions
-        self.transactions["achat_meteriel"] = Transaction({"euro": 8}, {"materiel": 1}, 10)
-        self.transactions["realisation_produit"] = Transaction({"materiel": 1}, {"produit": 1}, 20)
-        self.transactions["livraison"] = Transaction({"produit": 1}, {"client_content": 1}, 30)
-        # optimize
-        self.optimize = "client_content"
+        parser = argparse.ArgumentParser(description='KrpSim program')
+        parser.add_argument('config_file', type=argparse.FileType('r'))
+        parser.add_argument('delay_max', type=int)
+        args = parser.parse_args()
+        parse_config_file(args.config_file, self)
+
+    def find_to_optimize(self, to_opt):
+        return self.initial_place_tokens[to_opt]
+
+
 
     def print(self):
         print("places:")
@@ -34,16 +37,6 @@ class KrpSim:
         print("optimize:\n    {}".format(self.optimize))
 
 
-class Transaction:
-
-    def __init__(self, input={}, output={}, duration=0):
-        self.input = input
-        self.output = output
-        self.duration = duration
-
-    def string(self):
-        return "{} {} {}".format(self.input, self.output, self.duration)
-    
 
 class Marking:
 
@@ -102,15 +95,20 @@ class Marking:
                 nexts.append(next)
 
 
-krpsim = KrpSim()
-krpsim.print()
-print("")
-
-krpsim.initial_marking.print()
-print("")
-
-nexts = krpsim.initial_marking.get_nexts()
-while len(nexts) != 0:
-    nexts[0].print()
+def main():
+    krpsim = KrpSim()
+    krpsim.print()
     print("")
-    nexts = nexts[0].get_nexts()
+    
+    krpsim.initial_marking.print()
+    print("")
+    
+    solver(krpsim)
+#    nexts = krpsim.initial_marking.get_nexts()
+#    while len(nexts) != 0:
+#        nexts[0].print()
+#        print("")
+#        nexts = nexts[0].get_nexts()
+
+if __name__ == "__main__":
+    main()
