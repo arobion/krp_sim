@@ -47,13 +47,17 @@ class Marking:
         self.transactions = transactions
         self.prev = None
     
+    def __lt__(self, other):
+
+        return self.processed_cycle > other.processed_cycle
+
     def process_tokens(self):
-        self.processed_state = self.place_tokens.copy()
+#        self.processed_state = self.place_tokens.copy()
         biggest_cycle = 0
         for elem in self.transaction_tokens:
             if elem[0] > biggest_cycle:
                 biggest_cycle = elem[0]
-            self.simulate_transaction(elem[1])
+#            self.simulate_transaction(elem[1])
         self.processed_cycle = biggest_cycle + self.cycle
 
     def simulate_transaction(self, name):
@@ -202,50 +206,40 @@ def main():
     """
 
     queue = []
-    visited_state = []
-    visited_cycle = []
+    visited_place = []
+    visited_transaction = []
     best = krpsim.initial_marking
-    queue.append(krpsim.initial_marking)
+    heapq.heappush(queue, (krpsim.initial_marking.cycle, krpsim.initial_marking))
     while queue:
-        now = queue.pop(0)
+        pop = heapq.heappop(queue)
+        now = pop[1]
 
 #        if now is in visited:
-
-#        now.print()
         if is_better(now, best, "armoire"):
             best = now
 
-#        if is_visited(now, visited_state, visited_cycle):
-#            continue
-#        print('ici!!!!!!!!!!!!!!!!!!!!', now.place_tokens)
-        visited_cycle.append(now.cycle)
-        visited_state.append(now.place_tokens)
+        if is_visited(now, visited_place, visited_transaction):
+            continue
+        visited_place.append(now.place_tokens)
+        visited_transaction.append(now.transaction_tokens)
+
 
         nexts = now.get_nexts()
         
         for next_one in nexts:
-#            if now.processed_state == {'planche': 0, 'montant': 2, 'fond': 1, 'etagere': 3, 'armoire': 0}:
-#                print(next_one.transaction_tokens)
-            queue.append(next_one)
+            next_one.process_tokens()
+
+            heapq.heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
    
     while best:
         best.print()
         best = best.prev
     
-def is_visited(now, visited_state, visited_cycle):
-    now.process_tokens()
-    # processed state : {state: cycle}
-    if now.place_tokens in visited_state:
-        if now.processed_state == {'planche': 0, 'montant': 2, 'fond': 1, 'etagere': 3, 'armoire': 0}:
-            print('ici')
-#        index = visited_state.index(now.place_tokens)
-#        if visited_cycle[index] > now.cycle:
-#            visited_cycle.pop(index)
-#            visited_state.pop(index)
-#            return False
-#        print('ici')
-        return True
+def is_visited(now, visited_place, visited_transaction):
+    if now.place_tokens in visited_place:
+        if now.transaction_tokens in visited_transaction:
+            return True
     return False
 
 if __name__ == "__main__":
