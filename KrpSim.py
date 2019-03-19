@@ -81,14 +81,15 @@ class Marking:
         if len(self.transaction_tokens) == 0:
             return
         next = Marking(self.cycle, self.place_tokens.copy(), self.transaction_tokens.copy(), self.transactions)
-        nearest = heapq.heappop(next.transaction_tokens)
 
-        # update cycle
-        next.cycle = nearest[0]
+    #update cycle
+        next.cycle = next.transaction_tokens[0][0]
 
         # update place_tokens
-        for place_name, added_value in self.transactions[nearest[1]].output.items():
-            next.place_tokens[place_name] += added_value
+        while len(next.transaction_tokens) > 0 and next.transaction_tokens[0][0] == next.cycle:
+            nearest = heapq.heappop(next.transaction_tokens)
+            for place_name, added_value in self.transactions[nearest[1]].output.items():
+                next.place_tokens[place_name] += added_value
 
         nexts.append(next)
 
