@@ -66,7 +66,7 @@ class Setting():
     def parse_process(self, line):
         tmp_instr = line.split('):(')
         if len(tmp_instr) != 2:
-            tmp_instr = instr.split(')::')
+            tmp_instr = line.split(')::')
             if len(tmp_instr) != 2:
                 raise InputError("Invalid configuration file")
             else:

@@ -12,28 +12,31 @@ def is_better(m1, m2, optimize):
     return False
 
 def is_visited(now, visited_place, visited_transaction):
-    if now.place_tokens in visited_place:
-        if now.transaction_tokens in visited_transaction:
+    if tuple(now.place_tokens.items()) in visited_place:
+        if tuple(now.transaction_tokens) in visited_transaction:
             return True
     return False
 
 def brute_force(krpsim):
+    optimize = "marelle"
     queue = []
-    visited_place = []
-    visited_transaction = []
+    visited_place = set()
+    visited_transaction = set()
     best = krpsim.initial_marking
     heappush(queue, (krpsim.initial_marking.cycle, krpsim.initial_marking))
     while queue:
         now = heappop(queue)[1]
 
-        if is_better(now, best, "armoire"):
+        if is_better(now, best, optimize):
             best = now
+            if best.place_tokens[optimize] == 1:
+                break
 
         if is_visited(now, visited_place, visited_transaction):
             continue
 
-        visited_place.append(now.place_tokens)
-        visited_transaction.append(now.transaction_tokens)
+        visited_place.add(tuple(now.place_tokens.items()))
+        visited_transaction.add(tuple(now.transaction_tokens))
 
 
         nexts = now.get_nexts()
