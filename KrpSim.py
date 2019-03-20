@@ -33,7 +33,7 @@ class KrpSim:
             print("    {}: {}".format(name, token))
         print("transactions:")
         for name, transaction in self.transactions.items():
-            print("    {}: {}".format(name, transaction.string()))
+            print("    {}: {}".format(name, transaction))
         print("optimize:\n    {}".format(self.optimize))
 
 

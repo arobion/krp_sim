@@ -1,4 +1,4 @@
-from krpsim_error import *
+from krpsim_error import ErrorInput
 
 class Transaction:
 
@@ -8,13 +8,19 @@ class Transaction:
         self.output = output
         self.duration = duration
 
-    def string(self):
+    #def string(self):
+    #    return "{} {} {}".format(self.input, self.output, self.duration)
+    
+    def __str__(self):
         return "{} {} {}".format(self.input, self.output, self.duration)
+    
+    #def __repr__(self):
+    #    return "transaction({} {} {})".format(self.input, self.output, self.duration)
 
 def parse_config_file(config_file, krp):
 
     line = save_stock(config_file, krp)
-    if line ==None:
+    if line == None:
         raise ErrorInput("Process Error: No process declarated")
     line = save_process(config_file, line, krp)
     if line == None:

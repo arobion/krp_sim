@@ -1,14 +1,12 @@
 class CustomError(Exception):
-    pass
-        
+    def __init__(self, message):
+        super().__init__(message)
+
 class ErrorInput(CustomError):
-    def __init__(self,*args,**kwargs):
-        Exception.__init__(self,*args,**kwargs)
+    pass
 
 class ErrorOutput(CustomError):
-    def __init__(self,*args,**kwargs):
-        Exception.__init__(self,*args,**kwargs)
+    pass
 
 class KRPError(CustomError):
-    def __init__(self,*args,**kwargs):
-        Exception.__init__(self,*args,**kwargs)
+    pass
