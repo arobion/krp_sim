@@ -3,17 +3,17 @@ from krpsim_marking import Marking
 
 class KrpsimGraph:
 
-    def __init__(self):
+    def __init__(self, setting):
         self.delay = 0
         self.initial_place_tokens = {}
         self.transactions = {}
         self.optimize = []
-        self.setting = None
-        self.get_setting()
+        self.setting = setting
+        self.setting.parse_config_file()
         self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transactions)
 
-    def get_setting(self):
-        self.setting = Setting(self)
+    #def get_setting(self):
+    #    self.setting = Setting(self)
 
     def __str__(self):
         out = ""
