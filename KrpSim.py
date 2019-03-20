@@ -16,10 +16,6 @@ def check_transaction_inputs(krp, transaction):
             return False
     return True
 
-
-
-
-
 def detect_serial_fusion(krp):
     unmarked_places = find_unmarked_places(krp)
     for place in unmarked_places:
@@ -33,13 +29,11 @@ def detect_serial_fusion(krp):
 def main():
     setting = Setting()
     krpsim = KrpsimGraph(setting)
-    #krpsim = KrpsimGraph()
     print(krpsim)
 
     print(krpsim.initial_marking)
     print("")
     detect_serial_fusion(krpsim)
-
 #    brute_force(krpsim)
 
 if __name__ == "__main__":

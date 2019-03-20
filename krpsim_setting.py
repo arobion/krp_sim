@@ -5,10 +5,12 @@ import argparse
 
 class Setting():
 
-    def __init__(self, krp):
-        self.krp = krp
+    def __init__(self):
         self.config_file = None
         self.delay_max = 0
+        self.initial_place_tokens = {}
+        self.transactions = {}
+        self.optimize = []
 
     def get_args(self):
         parser = argparse.ArgumentParser(description='KrpSim program')
@@ -59,7 +61,7 @@ class Setting():
             quant = int(instr[1])
         except:
             raise InputError("Stock Error: Quantity should be a valid integer")
-        self.krp.initial_place_tokens[label] = quant 
+        self.initial_place_tokens[label] = quant 
 
     def parse_process(self, line):
         tmp_instr = line.split('):(')
@@ -71,7 +73,7 @@ class Setting():
                 pass
         else:
             transaction = self.parse_transaction(tmp_instr)
-            self.krp.transactions[transaction.name] = transaction
+            self.transactions[transaction.name] = transaction
 
     def parse_transaction_inputs(self, transaction, inputs):
         for entry in inputs.split(';'):
@@ -98,8 +100,8 @@ class Setting():
             except:
                 raise InputError("Process Error: Quantity must be a valid integer")
             transaction.output[output_name] = quantity
-            if output_name not in self.krp.initial_place_tokens.keys():
-                self.krp.initial_place_tokens[output_name] = 0
+            if output_name not in self.initial_place_tokens.keys():
+                self.initial_place_tokens[output_name] = 0
 
 
     def parse_transaction(self, instr):
@@ -145,4 +147,4 @@ class Setting():
         optimize_entries = line[1][:-2]
         to_optimize = optimize_entries.split(';')
         for elem in to_optimize:
-            self.krp.optimize.append(elem)
+            self.optimize.append(elem)
