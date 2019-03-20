@@ -1,7 +1,8 @@
 import heapq
 import argparse
-from krpsim_parsing import parse_config_file
+from krpsim_parsing import Setting
 from krpsim_solver import solver
+ 
 
 
 class KrpSim:
@@ -11,16 +12,12 @@ class KrpSim:
         self.initial_place_tokens = {}
         self.transactions = {}
         self.optimize = []
-        self.parse()
+        self.get_setting()
         self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transactions)
 
-    def parse(self):
-        # places
-        parser = argparse.ArgumentParser(description='KrpSim program')
-        parser.add_argument('config_file', type=argparse.FileType('r'))
-        parser.add_argument('delay_max', type=int)
-        args = parser.parse_args()
-        parse_config_file(args.config_file, self)
+    def get_setting(self):
+        setting = Setting(self)
+        
 
     def find_to_optimize(self, to_opt):
         return self.initial_place_tokens[to_opt]

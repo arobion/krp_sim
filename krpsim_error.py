@@ -2,10 +2,10 @@ class CustomError(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-class ErrorInput(CustomError):
+class InputError(CustomError):
     pass
 
-class ErrorOutput(CustomError):
+class OutputError(CustomError):
     pass
 
 class KRPError(CustomError):

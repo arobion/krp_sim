@@ -1,132 +1,150 @@
-from krpsim_error import ErrorInput
-
-class Transaction:
-
-    def __init__(self, name="", input={}, output={}, duration=0):
-        self.name = name
-        self.input = input
-        self.output = output
-        self.duration = duration
-
-    #def string(self):
-    #    return "{} {} {}".format(self.input, self.output, self.duration)
-    
-    def __str__(self):
-        return "{} {} {}".format(self.input, self.output, self.duration)
-    
-    #def __repr__(self):
-    #    return "transaction({} {} {})".format(self.input, self.output, self.duration)
-
-def parse_config_file(config_file, krp):
-
-    line = save_stock(config_file, krp)
-    if line == None:
-        raise ErrorInput("Process Error: No process declarated")
-    line = save_process(config_file, line, krp)
-    if line == None:
-        raise ErrorInput("Process Error: Process bad declaration")
-    verif_optimize(line, config_file, krp)
+from krpsim_error import InputError
+from krpsim_transaction import Transaction
+import argparse
 
 
-#    krp.initial_place_tokens["euro"] = 10
-#    krp.initial_place_tokens["materiel"] = 0
-#    krp.initial_place_tokens["produit"] = 0
-#    krp.initial_place_tokens["client_content"] = 0
-#
-#        # transactions
-#    krp.transactions["achat_meteriel"] = Transaction("achat_meteriel", {"euro": 8}, {"materiel": 1}, 10)
-#    krp.transactions["realisation_produit"] = Transaction("realisation_produit", {"materiel": 1}, {"produit": 1}, 20)
-#    krp.transactions["livraison"] = Transaction("livraison", {"produit": 1}, {"client_content": 1}, 30)
-        # optimize
-#    krp.optimize = "client_content"
+class Setting():
+
+    def __init__(self, krp):
+        self.krp = krp
+        self.config_file = None
+        self.delay_max = 0
+        self.get_args()
+        self.parse_config_file()
+
+    def get_args(self):
+        parser = argparse.ArgumentParser(description='KrpSim program')
+        parser.add_argument('config_file', type=str)
+        parser.add_argument('delay_max', type=int)
+        args = parser.parse_args()
+        self.config_file = args.config_file
+        self.delay_max = args.delay_max
+
+    def parse_config_file(self):
+
+        with open(self.config_file, 'r') as config_file:
+            step = "stock"
+            for line in config_file.readlines():
+                line = line.split('#')[0]
+                if line == "":
+                    continue
+
+                line_type = self.get_line_type(line)
+                if line_type == "process" and step == "stock":
+                    step = "process"
+                if line_type == "optimize" and step == "process":
+                    step = "optimize"
+                if line_type != step:
+                    raise InputError("Invalid configuration file")
+
+                if line_type == "stock":
+                    self.parse_stock(line)
+                elif line_type == "process":
+                    self.parse_process(line)
+                elif line_type == "optimize":
+                    step = "end"
+                    self.parse_optimize(line)
+
+    def get_line_type(self, line):
+        test_stock = line.split(':')
+        if len(test_stock) == 2:
+            if test_stock[0] == "optimize":
+                return ("optimize")
+            return ("stock")
+        return ("process")
 
 
-def verif_optimize(line, config_file, krp):
-    line = line.split(':(')
-    if len(line) != 2:
-        raise ErrorInput("Config file Error: Config file is unvalid")
-    if line[0] != "optimize":
-        raise ErrorInput("Config file Error: Config file is unvalid")
-    if line[1][-2:] != ")\n":
-        raise ErrorInput("Config file Error: optimize is unvalid")
-    line[1] = line[1][:-2]
-    to_opt = line[1].split(';')
-    for elem in to_opt:
-        krp.optimize.append(elem)
+    def parse_stock(self, line):
+        instr = line.split(':')
+        label = instr[0]
+        try:
+            quant = int(instr[1])
+        except:
+            raise InputError("Stock Error: Quantity should be a valid integer")
+        self.krp.initial_place_tokens[label] = quant 
 
-def save_stock(config_file, krp):
-    line = config_file.readline()
-    while line:
-        instr = line.split('#')[0]
-        if instr != "":
-            instr = instr.split(':')
-            if len(instr) != 2:
-                return line
-            label = instr[0]
-            try:
-                quant = int(instr[1])
-            except:
-                raise ErrorInput("Stock Error: Quantity should be a valid integer")
-            krp.initial_place_tokens[label] = quant
-        line = config_file.readline()
-    return  
-
-def save_process(config_file, line, krp):
-    while line:
-        instr = line.split('#')[0]
-        if instr != "":
-            tmp_instr = instr.split('):(')
+    def parse_process(self, line):
+        tmp_instr = line.split('):(')
+        if len(tmp_instr) != 2:
+            tmp_instr = instr.split(')::')
             if len(tmp_instr) != 2:
-                tmp_instr = instr.split(')::')
-                if len(tmp_instr) != 2:
-                    return line
-            transaction = split_instr(tmp_instr, krp)
-            krp.transactions[transaction.name] = transaction
-        line = config_file.readline()
-    return "\n"
+                raise InputError("Invalid configuration file")
+            else:
+                pass
+        else:
+            transaction = self.parse_transaction(tmp_instr)
+            self.krp.transactions[transaction.name] = transaction
 
-def split_instr(instr, krp):
-    t = Transaction("", {}, {}, 0)
-    left = instr[0].split(':(')
-    if len(left) < 2:
-        raise ErrorInput("Process Error: any Process need resources or name")
-    right = instr[1].split('):')
-    t.name = left[0]
-    for inputs in left[1].split(';'):
-        single_input = inputs.split(':')
-        if len(single_input) != 2:
-            raise ErrorInput("Process Error: bad declaration of a Process")
-        input_name = single_input[0]
+    def parse_transaction_inputs(self, transaction, inputs):
+        for entry in inputs.split(';'):
+            entry_split = entry.split(':')
+            if len(entry_split) != 2:
+                raise InputError("Process Error: bad declaration of a Process")
+            input_name = entry_split[0]
+            input_value = entry_split[1]
+            try:
+                quantity = int(input_value)
+            except:
+                raise InputError("Process Error: Quantity must be a valid integer")
+            transaction.input[input_name] = quantity
+
+    def parse_transaction_outputs(self, transaction, outputs):
+        for entry in outputs.split(';'):
+            entry_split = entry.split(':')
+            if len(entry_split) != 2:
+                raise InputError("Process Error: bad declaration of a Process")
+            output_name = entry_split[0]
+            output_value = entry_split[1]
+            try:
+                quantity = int(output_value)
+            except:
+                raise InputError("Process Error: Quantity must be a valid integer")
+            transaction.output[output_name] = quantity
+            if output_name not in self.krp.initial_place_tokens.keys():
+                self.krp.initial_place_tokens[output_name] = 0
+
+
+    def parse_transaction(self, instr):
+        transaction = Transaction("", {}, {}, 0)
+        name_inputs = instr[0].split(':(')
+        if len(name_inputs) < 2:
+            raise InputError("Process Error: any Process need resources or name")
+        name = name_inputs[0]
+        inputs = name_inputs[1]
+
+        transaction.name = name
+        self.parse_transaction_inputs(transaction, inputs)
+        outputs_delay = instr[1].split('):')
+        if len(outputs_delay) == 1:
+            try:
+                delay = int(outputs_delay[0])
+                transaction.duration = delay
+                return transaction
+            except:
+                raise InputError("Process Error: Delay must be a valid integer")
+
+        if len(outputs_delay) != 2:
+            raise InputError("Process Error : Bad process declaration")
+        
+        outputs = outputs_delay[0]
+        delay = outputs_delay[1]
+        self.parse_transaction_outputs(transaction, outputs)
         try:
-            quantity = int(single_input[1])
+            delay = int(delay)
+            transaction.duration = delay
         except:
-            raise ErrorInput("Process Error: Quantity must be a valid integer")
-        t.input[input_name] = quantity
+            raise InputError("Process Error: Delay must be a valid integer")
+        return transaction
 
-    if len(right) == 1:
-        try:
-            delay = int(right[0])
-            t.duration = delay
-            return t
-        except:
-            raise ErrorInput("Process Error: Delay must be a valid integer")
-
-    for outputs in right[0].split(';'):
-        single_output = outputs.split(':')
-        if len(single_output) != 2:
-            raise ErrorInput("Process Error: bad declaration of a Process")
-        output_name = single_output[0]
-        try:
-            quantity = int(single_output[1])
-        except:
-            raise ErrorInput("Process Error: Quantity must be a valid integer")
-        t.output[output_name] = quantity
-        if output_name not in krp.initial_place_tokens.keys():
-            krp.initial_place_tokens[output_name] = 0
-
-    try:
-        delay = int(right[1])
-        t.duration = delay
-    except:
-        raise ErrorInput("Process Error: Delay must be a valid integer")
-    return t
+    def parse_optimize(self, line):
+        line = line.split(':(')
+        if len(line) != 2:
+            raise InputError("Config file Error: Config file is unvalid")
+        if line[0] != "optimize":
+            raise InputError("Config file Error: Config file is unvalid")
+        if line[1][-2:] != ")\n":
+            raise InputError("Config file Error: optimize is unvalid")
+        optimize_entries = line[1][:-2]
+        to_optimize = optimize_entries.split(';')
+        for elem in to_optimize:
+            self.krp.optimize.append(elem)
