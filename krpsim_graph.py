@@ -7,6 +7,8 @@ class KrpsimGraph:
         self.delay = 0
         self.initial_place_tokens = {}
         self.transactions = {}
+        self.places_inputs = {}
+        self.places_outputs = {}
         self.optimize = []
         self.setting = None
         self.get_setting()

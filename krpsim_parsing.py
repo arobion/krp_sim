@@ -87,6 +87,9 @@ class Setting():
             except:
                 raise InputError("Process Error: Quantity must be a valid integer")
             transaction.input[input_name] = quantity
+            if input_name not in self.krp.places_inputs.keys():
+                 self.krp.places_inputs[input_name] = []
+            self.krp.places_inputs[input_name].append(transaction)
 
     def parse_transaction_outputs(self, transaction, outputs):
         for entry in outputs.split(';'):
@@ -102,6 +105,9 @@ class Setting():
             transaction.output[output_name] = quantity
             if output_name not in self.krp.initial_place_tokens.keys():
                 self.krp.initial_place_tokens[output_name] = 0
+            if output_name not in self.krp.places_outputs.keys():
+                 self.krp.places_outputs[output_name] = []
+            self.krp.places_outputs[output_name].append(transaction)
 
 
     def parse_transaction(self, instr):
