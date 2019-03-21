@@ -20,7 +20,7 @@ def main():
         break
 
 
-#    brute_force(krpsim)
+    brute_force(krpsim)
 
 if __name__ == "__main__":
     main()
