@@ -59,6 +59,8 @@ class Setting():
     def parse_stock(self, line):
         instr = line.split(':')
         label = instr[0]
+        if not label:
+            raise InputError("Stock Error: Invalid stock name format")
         try:
             quant = int(instr[1])
         except:
