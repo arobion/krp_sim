@@ -12,6 +12,7 @@ class KrpsimGraph:
         self.places_inputs = setting.places_inputs
         self.places_outputs = setting.places_outputs
         self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transactions)
+        self.transformations = {}
 
     def __str__(self):
         out = ""
@@ -20,6 +21,6 @@ class KrpsimGraph:
             out += ("    {}: {}\n".format(name, token))
         out += "transactions:\n"
         for name, transaction in self.transactions.items():
-            out += "    {}: {}\n".format(name, transaction)
+            out += "    {}\n".format(transaction)
         out += "optimize:\n    {}\n".format(self.optimize)
         return (out)

@@ -7,7 +7,7 @@ class Transaction():
         self.duration = duration
 
     def __str__(self):
-        return "{} {} {}".format(self.input, self.output, self.duration)
+        return "{}: {} {} {}".format(self.name, self.input, self.output, self.duration)
 
     #  def __repr__(self):
     #     return "transaction({} {} {})".format(self.input, self.output, self.duration)
