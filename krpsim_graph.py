@@ -9,8 +9,8 @@ class KrpsimGraph:
         self.transactions = setting.transactions
         self.optimize = setting.optimize
         self.delay = 0
-        self.places_inputs = {}
-        self.places_outputs = {}
+        self.places_inputs = setting.places_inputs
+        self.places_outputs = setting.places_outputs
         self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transactions)
 
     def __str__(self):
