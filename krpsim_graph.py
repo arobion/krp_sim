@@ -1,4 +1,3 @@
-from krpsim_parsing import Setting
 from krpsim_marking import Marking
 
 class KrpsimGraph:
