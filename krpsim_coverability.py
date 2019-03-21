@@ -18,7 +18,7 @@ def is_visited(now, visited_place, visited_transaction):
     return False
 
 def brute_force(krpsim):
-    optimize = "year"
+    optimize = krpsim.optimize[0]
     queue = []
     visited_place = set()
     visited_transaction = set()
@@ -29,8 +29,6 @@ def brute_force(krpsim):
 
         if is_better(now, best, optimize):
             best = now
-            if best.place_tokens[optimize] >= 1:
-                break
 
         if is_visited(now, visited_place, visited_transaction):
             continue
