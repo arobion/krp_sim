@@ -58,6 +58,8 @@ class Setting():
 
     def parse_stock(self, line):
         instr = line.split(':')
+        if len(instr) != 2:
+            raise InputError("Stock Error: Invalid stock format")
         label = instr[0]
         if not label:
             raise InputError("Stock Error: Invalid stock name format")
@@ -147,14 +149,14 @@ class Setting():
         return transaction
 
     def parse_optimize(self, line):
-        line = line.split(':(')
+        line = line.strip().split(':(')
         if len(line) != 2:
-            raise InputError("Config file Error: Config file is unvalid")
+            raise InputError("Optimize Error : Invalid optimize format")
         if line[0] != "optimize":
-            raise InputError("Config file Error: Config file is unvalid")
-        if line[1][-2:] != ")\n":
-            raise InputError("Config file Error: optimize is unvalid")
-        optimize_entries = line[1][:-2]
+            raise InputError("Optimize Error : Invalid optimize name format")
+        if line[1][-1:] != ")":
+            raise InputError("Optimize Error : optimize is unvalid")
+        optimize_entries = line[1][:-1]
         to_optimize = optimize_entries.split(';')
         for elem in to_optimize:
             self.optimize.append(elem)

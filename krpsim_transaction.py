@@ -8,6 +8,3 @@ class Transaction():
 
     def __str__(self):
         return "{} {} {}".format(self.input, self.output, self.duration)
-
-    #  def __repr__(self):
-    #     return "transaction({} {} {})".format(self.input, self.output, self.duration)
