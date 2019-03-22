@@ -57,6 +57,7 @@ def detect_serial_fusion(krp):
 
     return False
 
+
 def find_unmarked_places(krp):
     ret = []
     for k, v in krp.initial_place_tokens.items():

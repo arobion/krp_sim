@@ -36,12 +36,9 @@ def brute_force(krpsim):
         visited_place.add(tuple(now.place_tokens.items()))
         visited_transaction.add(tuple(now.transaction_tokens))
 
-
         nexts = now.get_nexts()
         
         for next_one in nexts:
-            next_one.process_tokens()
-
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
    

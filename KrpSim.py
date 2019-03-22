@@ -19,7 +19,6 @@ def main():
             
         break
 
-
     brute_force(krpsim)
 
 if __name__ == "__main__":
