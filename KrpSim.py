@@ -29,7 +29,6 @@ def main():
 
     print(krpsim)
     
-
     krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(), [], krpsim.transactions)
     brute_force(krpsim)
 

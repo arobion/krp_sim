@@ -26,6 +26,9 @@ def brute_force(krpsim):
     heappush(queue, (krpsim.initial_marking.cycle, krpsim.initial_marking))
     while queue:
         now = heappop(queue)[1]
+        
+        if now.cycle > krpsim.delay:
+            break
 
         if is_better(now, best, optimize):
             best = now
@@ -39,15 +42,12 @@ def brute_force(krpsim):
         visited_place.add(tuple(now.place_tokens.items()))
         visited_transaction.add(tuple(now.transaction_tokens))
 
-
         nexts = now.get_nexts()
         
         for next_one in nexts:
-            next_one.process_tokens()
-
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
-   
+    
     while best:
         print(best)
         best = best.prev

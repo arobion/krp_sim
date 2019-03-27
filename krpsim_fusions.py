@@ -167,16 +167,31 @@ def update_place(krp, place, pf):
 #################################################################
 
 def detect_serial_fusion(krp):
-    unmarked_places = find_unmarked_places(krp)
-    for place in unmarked_places:
-        if place not in krp.places_inputs.keys() or place not in krp.places_outputs.keys():
+    for place, value in krp.initial_place_tokens.items():
+        # rule 1: place p is unmarked in the initial marking
+        if value != 0:
             continue
-#        print(len(krp.places_inputs[place][0].input)," AND AND", len(krp.places_outputs[place][0].output))
-        if len(krp.places_inputs[place]) == 1 and len(krp.places_outputs[place]) == 1:
-            if len(krp.places_inputs[place][0].input) == 1 and len(krp.places_outputs[place][0].output) == 1:
-                if check_transaction_inputs(krp, krp.places_outputs[place][0]):
-                    proceed_serial_fusion(krp, place, krp.places_outputs[place][0], krp.places_inputs[place][0])
-                    return True
+        
+        # rule 3: place p is disconnected from all other transitions
+        # first check if there is place(s) in places_inputs and places_output
+        # then check if the len is 1 or not
+        if (place not in krp.places_inputs or
+                place not in krp.places_outputs or
+                len(krp.places_inputs[place]) != 1 or
+                len(krp.places_outputs[place]) != 1):
+            continue
+
+        # rule 2:
+        # 1) place p is the unique output place of t1
+        # 2) place p is the unique input place of t2
+        t1 = krp.places_outputs[place][0]
+        t2 = krp.places_inputs[place][0]
+        if len(t1.output) != 1 or len(t2.input) != 1:
+            continue
+
+        proceed_serial_fusion(krp, place, t1, t2)
+        return True
+
     return False
 
 def check_transaction_inputs(krp, transaction):

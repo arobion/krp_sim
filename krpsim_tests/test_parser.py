@@ -3,12 +3,19 @@ import pytest
 sys.path.append('..')
 from krpsim_setting import Setting
 
-@pytest.mark.skip(reason="no way of currently testing this")
 def stock_tester(expression):
     try:
         setting = Setting()
         setting.parse_stock(expression)
         return (setting.initial_place_tokens)
+    except Exception as e:
+        return(e.__str__())
+
+def optimize_tester(expression):
+    try:
+        setting = Setting()
+        setting.parse_optimize(expression)
+        return (setting.optimize)
     except Exception as e:
         return(e.__str__())
 
@@ -62,3 +69,47 @@ def test_stock_same_name():
     except Exception as e:
         res = e.__str__()
     assert str(res) == "{'planche': 7}"
+
+def test_optimize_simple():
+    res = optimize_tester("optimize:(time;armoire)")
+    assert str(res) == '''['time', 'armoire']'''
+
+def test_optimize_empty():
+    res = optimize_tester(":")
+    assert str(res) == 'Optimize Error : Invalid optimize format'
+
+def test_optimize_without_value():
+    res = optimize_tester("optimize:")
+    assert str(res) == 'Optimize Error : Invalid optimize format'
+
+def test_optimize_without_name():
+    res = optimize_tester(":(time;armoire)")
+    assert str(res) == 'Optimize Error : Invalid optimize name format'
+
+def test_optimize_multiple():
+    res = optimize_tester("optimize:(time;armoire):(time;armoire)")
+    assert str(res) == 'Optimize Error : Invalid optimize format'
+
+def test_optimize_multiple_2():
+    res = optimize_tester("optimize::(time;armoire)")
+    assert str(res) == 'Optimize Error : Invalid optimize name format'
+
+def test_optimize_multiple_3():
+    res = optimize_tester("optimize::(time;armoire)::(time;armoire)")
+    assert str(res) == 'Optimize Error : Invalid optimize format'
+
+def test_optimize_invalid_separator():
+    res = optimize_tester("optimize;(time;armoire)")
+    assert str(res) == 'Optimize Error : Invalid optimize format'
+
+def test_optimize_weird_value():
+    res = optimize_tester("optimize:(d][][][];armoire)")
+    assert str(res) == '''['d][][][]', 'armoire']'''
+
+def test_optimize_weird_value_2():
+    res = optimize_tester("optimize:(time;armoire)()")
+    assert str(res) == '''['time', 'armoire)(']'''
+
+def test_optimize_weird_value_3():
+    res = optimize_tester("optimize:((time;armoire)")
+    assert str(res) == '''['(time', 'armoire']'''

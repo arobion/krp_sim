@@ -2,12 +2,13 @@ from heapq import heappop, heappush
 
 class Marking:
 
-    def __init__(self, cycle, place_tokens, transaction_tokens, transactions):
+    def __init__(self, cycle, place_tokens, transaction_tokens, transactions, processed_cycle=0):
         self.cycle = cycle
         self.place_tokens = place_tokens
         self.transaction_tokens = transaction_tokens
         self.transactions = transactions
         self.prev = None
+        self.processed_cycle = processed_cycle
     
     def __lt__(self, other):
         return (self.processed_cycle > other.processed_cycle)
@@ -18,13 +19,6 @@ class Marking:
         ret += "place_tokens:{}\n".format(self.place_tokens)
         ret += "transaction_tokens:{}\n".format(self.transaction_tokens)
         return (ret)
-
-    def process_tokens(self):
-        biggest_cycle = 0
-        for transaction in self.transaction_tokens:
-            if transaction[0] > biggest_cycle:
-                biggest_cycle = transaction[0]
-        self.processed_cycle = biggest_cycle
 
     def simulate_transaction(self, name):
         transaction = self.transactions[name]
@@ -40,7 +34,7 @@ class Marking:
     def wait_nearest_transaction(self, nexts):
         if len(self.transaction_tokens) == 0:
             return
-        next = Marking(self.cycle, self.place_tokens.copy(), self.transaction_tokens.copy(), self.transactions)
+        next = Marking(self.cycle, self.place_tokens.copy(), self.transaction_tokens.copy(), self.transactions, self.processed_cycle)
 
         #  Update cycle
         next.cycle = next.transaction_tokens[0][0]
@@ -63,7 +57,7 @@ class Marking:
 
             if not enabled:
                 continue
-            next = Marking(self.cycle, self.place_tokens.copy(), self.transaction_tokens.copy(), self.transactions)
+            next = Marking(self.cycle, self.place_tokens.copy(), self.transaction_tokens.copy(), self.transactions, self.processed_cycle)
 
             # update place_tokens
             for place_name, used_value in transaction.input.items():
@@ -72,5 +66,7 @@ class Marking:
             # update transaction_tokens
             ending = next.cycle + next.transactions[transaction_name].duration
             heappush(next.transaction_tokens, (ending, transaction_name))
+            if ending > next.processed_cycle:
+                next.processed_cycle = ending
             
             nexts.append(next)
