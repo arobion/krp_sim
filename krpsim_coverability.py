@@ -32,6 +32,9 @@ def brute_force(krpsim):
 
         if is_visited(now, visited_place, visited_transaction):
             continue
+        if now.place_tokens[optimize] >= 1500:
+           break
+
 
         visited_place.add(tuple(now.place_tokens.items()))
         visited_transaction.add(tuple(now.transaction_tokens))
