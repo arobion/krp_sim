@@ -1,5 +1,6 @@
 import heapq
 
+
 def solver(krp):
     path = {}
     list_places = {}
@@ -8,6 +9,7 @@ def solver(krp):
     print("\nFINAL PATH = ")
     for elem in path:
         print(elem.name)
+
 
 def get_ind_path(krp, node, path, lst):
     if is_not_producible(krp, node): # do the function 
@@ -20,6 +22,7 @@ def get_ind_path(krp, node, path, lst):
         for key, val in childs[rand].input.items():
             for i in range(0, val):
                 get_ind_path(krp, key, path, lst)
+
 
 def is_not_producible(krp, node):
     for key, val in krp.transactions.items():
@@ -35,21 +38,24 @@ def get_childs(krp, node):
             ret.append(val)
     return ret
 
+
 def calc_cost(krp, path):
     full_lst = get_empty_list(krp.initial_place_tokens)
     for elem in path:
         for place, nb in elem.input.items():
-            if is_not_producible(krp, place) == True:
+            if is_not_producible(krp, place) is True:
                 full_lst[place] += nb
     nb = how_many(full_lst, krp.initial_place_tokens.copy())
     print(nb)
     simulate(krp, path, nb)
+
 
 def get_empty_list(places):
     new = places.copy()
     for k in new.keys():
         new[k] = 0
     return new
+
 
 def how_many(need, initial):
     nb = 0
@@ -60,8 +66,9 @@ def how_many(need, initial):
                 return nb
         nb += 1
 
+
 def simulate(krp, path, nb):
-    return 
+    return
 #    tot = path * nb
 #    places = kpr.initial_place_tokens.copy()
 #    cycle = 0
@@ -72,6 +79,3 @@ def simulate(krp, path, nb):
 #                fire_transaction(elem, places)
 #                to_pop.append(i)
 #        for ind in to_pop:
-
-
-

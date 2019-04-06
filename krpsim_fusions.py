@@ -4,6 +4,7 @@ from krpsim_transaction import Transaction
 ###################  LATERAL FUSION PART ########################
 #################################################################
 
+
 def detect_lateral_transaction_fusion_1(krp):
     S_list = find_same_input_transactions(krp)
     for S in S_list:
@@ -19,8 +20,8 @@ def detect_lateral_transaction_fusion_1(krp):
                 else:
                     rule_1.add(False)
                 rule_4.add(krp.initial_place_tokens[elem])
-        if rule_2 == True and len(rule_1) == 1 and len(rule_4) == 1:
-#            print('DETECTED_1')
+        if rule_2 is True and len(rule_1) == 1 and len(rule_4) == 1:
+            # print('DETECTED_1')
             proceed_lateral_transaction_fusion_1(krp, S)
             return True
     return False
@@ -29,8 +30,9 @@ def detect_lateral_transaction_fusion_1(krp):
 fusion all the t in S in Tf
 remove all the t in S from krp.transaction
 add tf in transaction
-remove 
+remove
 """
+
 
 def proceed_lateral_transaction_fusion_1(krp, S):
     duration = 0
@@ -49,6 +51,7 @@ def proceed_lateral_transaction_fusion_1(krp, S):
     tf.name = name
     tf.duration = duration
     krp.transactions[tf.name] = tf
+
 
 def remove_transaction(krp, tf, transaction):
     krp.transactions.pop(transaction.name)
@@ -70,6 +73,7 @@ def merge_transaction(krp, tf, transaction):
     for i in range(0, nb):
         tf + transaction
 
+
 def detect_lateral_transaction_fusion_2(krp):
     P_list = find_same_input_places(krp)
     for P in P_list:
@@ -90,10 +94,11 @@ def detect_lateral_transaction_fusion_2(krp):
                     S.append(krp.places_inputs[place][0])
                     rule_4.add(krp.initial_place_tokens[place])
 
-        if rule_2 == True and rule_3 == True and len(rule_4) == 1:
+        if rule_2 is True and rule_3 is True and len(rule_4) == 1:
             print('DETECTED_2')
 #            proceed_lateral_transaction_fusion_2(krp, S)
 #            return True
+
 
 def detect_lateral_places_fusion(krp):
     P_list = find_same_input_places(krp)
@@ -113,11 +118,10 @@ def detect_lateral_places_fusion(krp):
                 if len(krp.places_inputs[place]) != 1:
                     rule_3 = False
             rule_4.add(krp.initial_place_tokens[place])
-        if rule_2 == True and rule_3 == True and len(rule_4) == 1 and len(rule_3_store) == 1:
-#            print('DETECTED_3')
+        if rule_2 is True and rule_3 is True and len(rule_4) == 1 and len(rule_3_store) == 1:
+            # print('DETECTED_3')
             proceed_lateral_places_fusion(krp, P)
             return True
-
 
     return False
 
@@ -127,8 +131,9 @@ add pf in initial_place_tokens
 update the input transaction
 update the output transaction
 remove all te places in krp.initial_place_tokens
-remove 
+remove
 """
+
 
 def proceed_lateral_places_fusion(krp, P):
     pf = ""
@@ -143,6 +148,7 @@ def proceed_lateral_places_fusion(krp, P):
     for place in P:
         update_place(krp, place, pf)
 
+
 def update_place(krp, place, pf):
     transaction_input = krp.places_inputs[place][0]
     transaction_input.input.pop(place)
@@ -151,7 +157,7 @@ def update_place(krp, place, pf):
         krp.places_inputs.pop(place)
     if pf not in krp.places_inputs:
         krp.places_inputs[pf] = [transaction_input]
-    
+
     transaction_output = krp.places_outputs[place][0]
     transaction_output.output.pop(place)
     transaction_output.output[pf] = 1
@@ -161,17 +167,17 @@ def update_place(krp, place, pf):
         krp.places_outputs[pf] = [transaction_output]
 
 
-
 #################################################################
 ###################  SERIAL FUSION PART #########################
 #################################################################
+
 
 def detect_serial_fusion(krp):
     for place, value in krp.initial_place_tokens.items():
         # rule 1: place p is unmarked in the initial marking
         if value != 0:
             continue
-        
+
         # rule 3: place p is disconnected from all other transitions
         # first check if there is place(s) in places_inputs and places_output
         # then check if the len is 1 or not
@@ -194,11 +200,13 @@ def detect_serial_fusion(krp):
 
     return False
 
+
 def check_transaction_inputs(krp, transaction):
     for place_name in transaction.input.keys():
         if len(krp.places_inputs[place_name]) != 1:
             return False
     return True
+
 
 def update_places(krp, place, t1, t2, tf):
     krp.initial_place_tokens.pop(place)

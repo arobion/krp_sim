@@ -1,5 +1,6 @@
 from heapq import heappop, heappush
 
+
 class Marking:
 
     def __init__(self, cycle, place_tokens, transaction_tokens, transactions, processed_cycle=0):
@@ -9,7 +10,7 @@ class Marking:
         self.transactions = transactions
         self.prev = None
         self.processed_cycle = processed_cycle
-    
+
     def __lt__(self, other):
         return (self.processed_cycle > other.processed_cycle)
 
@@ -30,7 +31,7 @@ class Marking:
         self.wait_nearest_transaction(nexts)
         self.fire_each_transaction(nexts)
         return (nexts)
-    
+
     def wait_nearest_transaction(self, nexts):
         if len(self.transaction_tokens) == 0:
             return
@@ -68,5 +69,5 @@ class Marking:
             heappush(next.transaction_tokens, (ending, transaction_name))
             if ending > next.processed_cycle:
                 next.processed_cycle = ending
-            
+
             nexts.append(next)

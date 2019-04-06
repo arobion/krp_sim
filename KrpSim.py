@@ -4,6 +4,7 @@ from krpsim_setting import Setting
 from krpsim_marking import Marking
 from krpsim_fusions import detect_serial_fusion, detect_pre_fusion, detect_lateral_transaction_fusion_1, detect_lateral_transaction_fusion_2, detect_lateral_places_fusion
 
+
 def main():
     setting = Setting()
     krpsim = KrpsimGraph(setting)
@@ -24,11 +25,11 @@ def main():
             continue
         if detect_lateral_places_fusion(krpsim):
             continue
-            
+
         break
 
     print(krpsim)
-    
+
     krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(), [], krpsim.transactions)
     brute_force(krpsim)
 

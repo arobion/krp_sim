@@ -55,7 +55,6 @@ class Setting():
             return ("stock")
         return ("process")
 
-
     def parse_stock(self, line):
         instr = line.split(':')
         if len(instr) != 2:
@@ -67,7 +66,7 @@ class Setting():
             quant = int(instr[1])
         except:
             raise InputError("Stock Error: Quantity should be a valid integer")
-        self.initial_place_tokens[label] = quant 
+        self.initial_place_tokens[label] = quant
 
     def parse_process(self, line):
         tmp_instr = line.split('):(')
@@ -94,8 +93,8 @@ class Setting():
                 raise InputError("Process Error: Quantity must be a valid integer")
             transaction.input[input_name] = quantity
             if input_name not in self.places_inputs.keys():
-                 self.places_inputs[input_name] = []
-            self.places_inputs[input_name].append(transaction) 
+                self.places_inputs[input_name] = []
+            self.places_inputs[input_name].append(transaction)
 
     def parse_transaction_outputs(self, transaction, outputs):
         for entry in outputs.split(';'):
@@ -112,9 +111,8 @@ class Setting():
             if output_name not in self.initial_place_tokens.keys():
                 self.initial_place_tokens[output_name] = 0
             if output_name not in self.places_outputs.keys():
-                 self.places_outputs[output_name] = []
+                self.places_outputs[output_name] = []
             self.places_outputs[output_name].append(transaction)
-
 
     def parse_transaction(self, instr):
         transaction = Transaction("", {}, {}, 0)
@@ -137,7 +135,7 @@ class Setting():
 
         if len(outputs_delay) != 2:
             raise InputError("Process Error : Bad process declaration")
-        
+
         outputs = outputs_delay[0]
         delay = outputs_delay[1]
         self.parse_transaction_outputs(transaction, outputs)

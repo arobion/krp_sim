@@ -18,9 +18,6 @@ class Transaction():
             else:
                 self.output[elem] += other.output[elem]
 
-
-
-
     def __str__(self):
         return "{}: {} {} {}".format(self.name, self.input, self.output, self.duration)
 

@@ -1,5 +1,6 @@
 from krpsim_marking import Marking
 
+
 class KrpsimGraph:
 
     def __init__(self, setting):

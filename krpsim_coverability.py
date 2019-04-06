@@ -1,5 +1,6 @@
 from heapq import heappop, heappush
 
+
 def is_better(m1, m2, optimize):
     if m1.cycle == 0 and m2.cycle == 0:
         return False
@@ -11,11 +12,13 @@ def is_better(m1, m2, optimize):
             return True
     return False
 
+
 def is_visited(now, visited_place, visited_transaction):
     if tuple(now.place_tokens.items()) in visited_place:
         if tuple(now.transaction_tokens) in visited_transaction:
             return True
     return False
+
 
 def brute_force(krpsim):
     optimize = krpsim.optimize[0]
@@ -26,7 +29,7 @@ def brute_force(krpsim):
     heappush(queue, (krpsim.initial_marking.cycle, krpsim.initial_marking))
     while queue:
         now = heappop(queue)[1]
-        
+
         if now.cycle > krpsim.delay:
             break
 
@@ -36,18 +39,17 @@ def brute_force(krpsim):
         if is_visited(now, visited_place, visited_transaction):
             continue
         if now.place_tokens[optimize] >= 1500:
-           break
-
+            break
 
         visited_place.add(tuple(now.place_tokens.items()))
         visited_transaction.add(tuple(now.transaction_tokens))
 
         nexts = now.get_nexts()
-        
+
         for next_one in nexts:
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
-    
+
     while best:
         print(best)
         best = best.prev
