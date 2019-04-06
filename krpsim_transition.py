@@ -1,4 +1,4 @@
-class Transaction():
+class Transition():
 
     def __init__(self, name="", input={}, output={}, duration=0):
         self.name = name
@@ -22,4 +22,4 @@ class Transaction():
         return "{}: {} {} {}".format(self.name, self.input, self.output, self.duration)
 
     #  def __repr__(self):
-    #     return "transaction({} {} {})".format(self.input, self.output, self.duration)
+    #     return "transition({} {} {})".format(self.input, self.output, self.duration)

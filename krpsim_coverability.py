@@ -13,9 +13,9 @@ def is_better(m1, m2, optimize):
     return False
 
 
-def is_visited(now, visited_place, visited_transaction):
+def is_visited(now, visited_place, visited_transition):
     if tuple(now.place_tokens.items()) in visited_place:
-        if tuple(now.transaction_tokens) in visited_transaction:
+        if tuple(now.transition_tokens) in visited_transition:
             return True
     return False
 
@@ -24,7 +24,7 @@ def brute_force(krpsim):
     optimize = krpsim.optimize[0]
     queue = []
     visited_place = set()
-    visited_transaction = set()
+    visited_transition = set()
     best = krpsim.initial_marking
     heappush(queue, (krpsim.initial_marking.cycle, krpsim.initial_marking))
     while queue:
@@ -36,13 +36,15 @@ def brute_force(krpsim):
         if is_better(now, best, optimize):
             best = now
 
-        if is_visited(now, visited_place, visited_transaction):
+        if is_visited(now, visited_place, visited_transition):
             continue
-        if now.place_tokens[optimize] >= 1500:
-            break
+
+        # use this to set a limit
+        # if now.place_tokens[optimize] >= 20000:
+        #     break
 
         visited_place.add(tuple(now.place_tokens.items()))
-        visited_transaction.add(tuple(now.transaction_tokens))
+        visited_transition.add(tuple(now.transition_tokens))
 
         nexts = now.get_nexts()
 

@@ -1,5 +1,5 @@
 from krpsim_error import InputError
-from krpsim_transaction import Transaction
+from krpsim_transition import Transition
 import argparse
 
 
@@ -9,7 +9,7 @@ class Setting():
         self.config_file = None
         self.delay_max = 0
         self.initial_place_tokens = {}
-        self.transactions = {}
+        self.transitions = {}
         self.places_outputs = {}
         self.places_inputs = {}
         self.optimize = []
@@ -77,10 +77,10 @@ class Setting():
             else:
                 pass
         else:
-            transaction = self.parse_transaction(tmp_instr)
-            self.transactions[transaction.name] = transaction
+            transition = self.parse_transition(tmp_instr)
+            self.transitions[transition.name] = transition
 
-    def parse_transaction_inputs(self, transaction, inputs):
+    def parse_transition_inputs(self, transition, inputs):
         for entry in inputs.split(';'):
             entry_split = entry.split(':')
             if len(entry_split) != 2:
@@ -91,12 +91,12 @@ class Setting():
                 quantity = int(input_value)
             except:
                 raise InputError("Process Error: Quantity must be a valid integer")
-            transaction.input[input_name] = quantity
+            transition.input[input_name] = quantity
             if input_name not in self.places_inputs.keys():
                 self.places_inputs[input_name] = []
-            self.places_inputs[input_name].append(transaction)
+            self.places_inputs[input_name].append(transition)
 
-    def parse_transaction_outputs(self, transaction, outputs):
+    def parse_transition_outputs(self, transition, outputs):
         for entry in outputs.split(';'):
             entry_split = entry.split(':')
             if len(entry_split) != 2:
@@ -107,29 +107,29 @@ class Setting():
                 quantity = int(output_value)
             except:
                 raise InputError("Process Error: Quantity must be a valid integer")
-            transaction.output[output_name] = quantity
+            transition.output[output_name] = quantity
             if output_name not in self.initial_place_tokens.keys():
                 self.initial_place_tokens[output_name] = 0
             if output_name not in self.places_outputs.keys():
                 self.places_outputs[output_name] = []
-            self.places_outputs[output_name].append(transaction)
+            self.places_outputs[output_name].append(transition)
 
-    def parse_transaction(self, instr):
-        transaction = Transaction("", {}, {}, 0)
+    def parse_transition(self, instr):
+        transition = Transition("", {}, {}, 0)
         name_inputs = instr[0].split(':(')
         if len(name_inputs) < 2:
             raise InputError("Process Error: any Process need resources or name")
         name = name_inputs[0]
         inputs = name_inputs[1]
 
-        transaction.name = name
-        self.parse_transaction_inputs(transaction, inputs)
+        transition.name = name
+        self.parse_transition_inputs(transition, inputs)
         outputs_delay = instr[1].split('):')
         if len(outputs_delay) == 1:
             try:
                 delay = int(outputs_delay[0])
-                transaction.duration = delay
-                return transaction
+                transition.duration = delay
+                return transition
             except:
                 raise InputError("Process Error: Delay must be a valid integer")
 
@@ -138,13 +138,13 @@ class Setting():
 
         outputs = outputs_delay[0]
         delay = outputs_delay[1]
-        self.parse_transaction_outputs(transaction, outputs)
+        self.parse_transition_outputs(transition, outputs)
         try:
             delay = int(delay)
-            transaction.duration = delay
+            transition.duration = delay
         except:
             raise InputError("Process Error: Delay must be a valid integer")
-        return transaction
+        return transition
 
     def parse_optimize(self, line):
         line = line.strip().split(':(')

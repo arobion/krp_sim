@@ -15,7 +15,7 @@ def get_ind_path(krp, node, path, lst):
     if is_not_producible(krp, node): # do the function 
         return
     else:
-        childs = get_childs(krp, node) # recupere les transactions qui creent la node
+        childs = get_childs(krp, node) # recupere les transitions qui creent la node
         rand = 0
 #        print(childs[0].name, path)
         path.insert(0, childs[rand])
@@ -25,7 +25,7 @@ def get_ind_path(krp, node, path, lst):
 
 
 def is_not_producible(krp, node):
-    for key, val in krp.transactions.items():
+    for key, val in krp.transitions.items():
         if node in val.output.keys():
             return False
     return True
@@ -33,7 +33,7 @@ def is_not_producible(krp, node):
 
 def get_childs(krp, node):
     ret = []
-    for key, val in krp.transactions.items():
+    for key, val in krp.transitions.items():
         if node in val.output.keys():
             ret.append(val)
     return ret
@@ -76,6 +76,6 @@ def simulate(krp, path, nb):
 #        to_pop = []
 #        for i in range(0, len(tot)):
 #            if is_doable(elem, places):
-#                fire_transaction(elem, places)
+#                fire_transition(elem, places)
 #                to_pop.append(i)
 #        for ind in to_pop:
