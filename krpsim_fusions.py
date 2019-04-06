@@ -1,5 +1,84 @@
 from krpsim_transition import Transition
 
+'''
+Contain:
+- SerialFusion
+- PreFusion
+- LateralTransitionsFusionOne
+- LateralTransitionsFusionTwo
+- LateralPlacesFusion
+'''
+
+
+class SerialFusion:
+
+    def __init__(self, krp):
+        self.krp = krp
+
+    def detect(self):
+        for place, value in self.krp.initial_place_tokens.items():
+
+            # rule 1: place p is unmarked in the initial marking
+            if value != 0:
+                continue
+
+            # rule 3: place p is disconnected from all other transitions
+            # first check if there is place(s) in places_inputs and places_output
+            # then check if the len is 1 or not
+            if (place not in self.krp.places_inputs or
+                    place not in self.krp.places_outputs or
+                    len(self.krp.places_inputs[place]) != 1 or
+                    len(self.krp.places_outputs[place]) != 1):
+                continue
+
+            # rule 2:
+            # 1) place p is the unique output place of t1
+            # 2) place p is the unique input place of t2
+            t1 = self.krp.places_outputs[place][0]
+            t2 = self.krp.places_inputs[place][0]
+            if len(t1.output) != 1 or len(t2.input) != 1:
+                continue
+
+            self.proceed(place, t1, t2)
+            return True
+
+        return False
+
+    def proceed(self, place, t1, t2):
+        duration = t1.duration + t2.duration
+        name = t1.name + "+" + t2.name
+        inputs = t1.input
+        outputs = t2.output
+        tf = Transition(name=name, input=inputs, output=outputs, duration=duration)
+        self.krp.transitions[tf.name] = tf
+        self.krp.transformations[tf] = [t1, t2]
+        self.krp.transitions.pop(t1.name)
+        self.krp.transitions.pop(t2.name)
+
+        self.update_places(place, t1, t2, tf)
+
+    def update_places(self, place, t1, t2, tf):
+        self.krp.initial_place_tokens.pop(place)
+        self.krp.places_inputs.pop(place)
+        self.krp.places_outputs.pop(place)
+        for key, val in self.krp.places_inputs.items():
+            if val[0] == t1:
+                self.krp.places_inputs[key][0] = tf
+        for key, val in self.krp.places_outputs.items():
+            if val[0] == t2:
+                self.krp.places_outputs[key][0] = tf
+
+
+class PreFusion:
+
+    def __init__(self, krp):
+        self.krp = krp
+
+    def detect(self):
+        unmarked_places = find_unmarked_places(self.krp)
+        return False
+        print("Doing prefusion")
+
 
 class LateralTransitionsFusionOne:
     def __init__(self, krp):
@@ -103,7 +182,7 @@ class LateralTransitionsFusionTwo:
 
 
 class LateralPlacesFusion:
-    
+
     def __init__(self, krp):
         self.krp = krp
 
@@ -171,91 +250,6 @@ class LateralPlacesFusion:
             self.krp.places_outputs[pf] = [transition_output]
 
 
-class SerialFusion:
-
-    def __init__(self, krp):
-        self.krp = krp
-
-    def detect(self):
-        for place, value in self.krp.initial_place_tokens.items():
-
-            # rule 1: place p is unmarked in the initial marking
-            if value != 0:
-                continue
-
-            # rule 3: place p is disconnected from all other transitions
-            # first check if there is place(s) in places_inputs and places_output
-            # then check if the len is 1 or not
-            if (place not in self.krp.places_inputs or
-                    place not in self.krp.places_outputs or
-                    len(self.krp.places_inputs[place]) != 1 or
-                    len(self.krp.places_outputs[place]) != 1):
-                continue
-
-            # rule 2:
-            # 1) place p is the unique output place of t1
-            # 2) place p is the unique input place of t2
-            t1 = self.krp.places_outputs[place][0]
-            t2 = self.krp.places_inputs[place][0]
-            if len(t1.output) != 1 or len(t2.input) != 1:
-                continue
-
-            self.proceed(place, t1, t2)
-            return True
-
-        return False
-
-    def proceed(self, place, t1, t2):
-        duration = t1.duration + t2.duration
-        name = t1.name + "+" + t2.name
-        inputs = t1.input
-        outputs = t2.output
-        tf = Transition(name=name, input=inputs, output=outputs, duration=duration)
-        self.krp.transitions[tf.name] = tf
-        self.krp.transformations[tf] = [t1, t2]
-        self.krp.transitions.pop(t1.name)
-        self.krp.transitions.pop(t2.name)
-
-        self.update_places(place, t1, t2, tf)
-
-    def update_places(self, place, t1, t2, tf):
-        self.krp.initial_place_tokens.pop(place)
-        self.krp.places_inputs.pop(place)
-        self.krp.places_outputs.pop(place)
-        for key, val in self.krp.places_inputs.items():
-            if val[0] == t1:
-                self.krp.places_inputs[key][0] = tf
-        for key, val in self.krp.places_outputs.items():
-            if val[0] == t2:
-                self.krp.places_outputs[key][0] = tf
-
-
-class PreFusion:
-
-    def __init__(self, krp):
-        self.krp = krp
-
-    def detect(self):
-        unmarked_places = find_unmarked_places(self.krp)
-        return False
-        print("Doing prefusion")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #################################################################
 ###################  FINDING ITEMS PART #########################
 #################################################################
@@ -273,13 +267,15 @@ def find_same_input_places(krp):
         if sub_ret not in ret and len(sub_ret) != 0:
             ret.append(sub_ret)
     return ret
-                
+
+
 def find_unmarked_places(krp):
     ret = []
     for k, v in krp.initial_place_tokens.items():
         if v == 0:
             ret.append(k)
     return ret
+
 
 def find_same_input_transitions(krp):
     ret = []
@@ -293,4 +289,3 @@ def find_same_input_transitions(krp):
         if sub_ret not in ret and len(sub_ret) != 0:
             ret.append(sub_ret)
     return ret
-

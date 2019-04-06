@@ -1,4 +1,5 @@
 from krpsim_marking import Marking
+from krpsim_fusions import SerialFusion, PreFusion, LateralTransitionsFusionOne, LateralTransitionsFusionTwo, LateralPlacesFusion
 
 
 class KrpsimGraph:
@@ -14,6 +15,7 @@ class KrpsimGraph:
 #        self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transitions)
         self.initial_marking = None
         self.transformations = {}
+        self.reduce()
 
     def __str__(self):
         out = ""
@@ -25,3 +27,23 @@ class KrpsimGraph:
             out += "    {}\n".format(transition)
         out += "optimize:\n    {}\n".format(self.optimize)
         return (out)
+
+    def reduce(self):
+        sf = SerialFusion(self)
+        pf = PreFusion(self)
+        ltf1 = LateralTransitionsFusionOne(self)
+        ltf2 = LateralTransitionsFusionTwo(self)
+        lpf = LateralPlacesFusion(self)
+
+        while True:
+            if sf.detect():
+                continue
+            if pf.detect():
+                continue
+            if ltf1.detect():
+                continue
+            if ltf2.detect():
+                continue
+            if lpf.detect():
+                continue
+            break

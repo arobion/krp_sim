@@ -52,6 +52,10 @@ def brute_force(krpsim):
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
 
-    while best:
-        print(best)
-        best = best.prev
+    print_best(best)
+
+
+def print_best(best):
+    if best.prev:
+        print_best(best.prev)
+    print(best)
