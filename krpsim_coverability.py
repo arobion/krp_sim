@@ -40,7 +40,7 @@ def brute_force(krpsim):
             continue
 
         # use this to set a limit
-        # if now.place_tokens[optimize] >= 20000:
+        # if now.place_tokens[optimize] == 1:
         #     break
 
         visited_place.add(tuple(now.place_tokens.items()))
@@ -51,7 +51,7 @@ def brute_force(krpsim):
         for next_one in nexts:
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
-
+        
     print_best(best)
 
 

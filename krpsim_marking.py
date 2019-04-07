@@ -33,13 +33,18 @@ class Marking:
         return self.nexts
 
     def get_transition_combinations(self, current, index):
+        # stop when run through all transition
+        # then finish the nearest transition
         if index >= len(self.transition_keys):
             if current.finish_nearest_transition():
                 self.nexts.append(current)
             return
+        
+        # don't do this transition
+        next = Marking(self.cycle, current.place_tokens.copy(), current.transition_tokens.copy(), self.transitions, self.processed_cycle)
+        self.get_transition_combinations(next, index + 1)
 
-        self.get_transition_combinations(current, index + 1)
-
+        # do this transition 1+ time(s)
         transition = self.transitions[self.transition_keys[index]]
         times = 1
         while self.can_do_transition(current, transition, times):
@@ -55,7 +60,7 @@ class Marking:
             
     def create_new_marking(self, current, transition, times):
         next = Marking(self.cycle, current.place_tokens.copy(), current.transition_tokens.copy(), self.transitions, self.processed_cycle)
-        
+
         # update place_tokens
         for place_name, used_value in transition.input.items():
             next.place_tokens[place_name] -= used_value * times
@@ -65,7 +70,7 @@ class Marking:
         heappush(next.transition_tokens, (ending, transition.name, times))
         if ending > next.processed_cycle:
             next.processed_cycle = ending
-        
+
         return next
 
     def finish_nearest_transition(self):
