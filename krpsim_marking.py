@@ -1,5 +1,5 @@
 from heapq import heappop, heappush
-
+import sys
 
 class Marking:
 
@@ -8,8 +8,10 @@ class Marking:
         self.place_tokens = place_tokens
         self.transition_tokens = transition_tokens
         self.transitions = transitions
+        self.transition_keys = list(transitions)
         self.prev = None
         self.processed_cycle = processed_cycle
+        self.nexts = []
 
     def __lt__(self, other):
         return (self.processed_cycle > other.processed_cycle)
@@ -27,47 +29,55 @@ class Marking:
             self.processed_state[key] += val
 
     def get_nexts(self):
-        nexts = []
-        self.wait_nearest_transition(nexts)
-        self.fire_each_transition(nexts)
-        return (nexts)
+        self.get_transition_combinations(self, 0)
+        return self.nexts
 
-    def wait_nearest_transition(self, nexts):
-        if len(self.transition_tokens) == 0:
+    def get_transition_combinations(self, current, index):
+        if index >= len(self.transition_keys):
+            if current.finish_nearest_transition():
+                self.nexts.append(current)
             return
-        next = Marking(self.cycle, self.place_tokens.copy(), self.transition_tokens.copy(), self.transitions, self.processed_cycle)
+
+        self.get_transition_combinations(current, index + 1)
+
+        transition = self.transitions[self.transition_keys[index]]
+        times = 1
+        while self.can_do_transition(current, transition, times):
+            next = self.create_new_marking(current, transition, times)
+            self.get_transition_combinations(next, index + 1)
+            times += 1
+        
+    def can_do_transition(self, current, transition, times):
+        for place_name, required_value in transition.input.items():
+            if current.place_tokens[place_name] < required_value * times:
+                return False
+        return True
+            
+    def create_new_marking(self, current, transition, times):
+        next = Marking(self.cycle, current.place_tokens.copy(), current.transition_tokens.copy(), self.transitions, self.processed_cycle)
+        
+        # update place_tokens
+        for place_name, used_value in transition.input.items():
+            next.place_tokens[place_name] -= used_value * times
+
+        # update transition_tokens
+        ending = next.cycle + next.transitions[transition.name].duration
+        heappush(next.transition_tokens, (ending, transition.name, times))
+        if ending > next.processed_cycle:
+            next.processed_cycle = ending
+        
+        return next
+
+    def finish_nearest_transition(self):
+        if len(self.transition_tokens) == 0:
+            return False
 
         #  Update cycle
-        next.cycle = next.transition_tokens[0][0]
+        self.cycle = self.transition_tokens[0][0]
 
         #  Update place_tokens
-        while len(next.transition_tokens) > 0 and next.transition_tokens[0][0] == next.cycle:
-            nearest = heappop(next.transition_tokens)
-            for place_name, added_value in self.transitions[nearest[1]].output.items():
-                next.place_tokens[place_name] += added_value
-        nexts.append(next)
+        nearest = heappop(self.transition_tokens)
+        for place_name, added_value in self.transitions[nearest[1]].output.items():
+            self.place_tokens[place_name] += added_value * nearest[2]
 
-    def fire_each_transition(self, nexts):
-        for transition_name, transition in self.transitions.items():
-            enabled = True
-
-            for place_name, required_value in transition.input.items():
-                if self.place_tokens[place_name] < required_value:
-                    enabled = False
-                    break
-
-            if not enabled:
-                continue
-            next = Marking(self.cycle, self.place_tokens.copy(), self.transition_tokens.copy(), self.transitions, self.processed_cycle)
-
-            # update place_tokens
-            for place_name, used_value in transition.input.items():
-                next.place_tokens[place_name] -= used_value
-
-            # update transition_tokens
-            ending = next.cycle + next.transitions[transition_name].duration
-            heappush(next.transition_tokens, (ending, transition_name))
-            if ending > next.processed_cycle:
-                next.processed_cycle = ending
-
-            nexts.append(next)
+        return True

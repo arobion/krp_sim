@@ -15,7 +15,7 @@ class KrpsimGraph:
 #        self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transitions)
         self.initial_marking = None
         self.transformations = {}
-        self.reduce()
+        # self.reduce()
 
     def __str__(self):
         out = ""
