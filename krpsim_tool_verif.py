@@ -149,7 +149,7 @@ class Setting():
             except:
                 raise ErrorInput("Process Error: Delay must be a valid integer")
             p.output[output_name] = quantity
-            if output_name not in self.stock.values():
+            if output_name not in self.stock.keys():
                 self.stock[output_name] = 0
 
         return p
