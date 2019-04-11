@@ -149,11 +149,11 @@ def resolve_nearest_transitions(krp, current_cycle):
 
 
 def poc(krp):
-    total_time = time.time()
-    create_time = 0
-    concat_time = 0
+    # total_time = time.time()
+    # create_time = 0
+    # concat_time = 0
 
-#    optimize_list = [krp.optimize[0]]
+    # optimize_list = [krp.optimize[0]]
     while (krp.initial_marking.cycle < krp.delay):
         start = time.time()
         dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0])
