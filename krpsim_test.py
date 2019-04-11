@@ -2,6 +2,8 @@ import random
 import copy
 from krpsim_marking import Marking
 from heapq import heappop, heappush
+import time
+import sys
 
 def simulate_transaction(krp, sim, transition):
     for place_name, quantity in transition.input.items():
@@ -69,7 +71,8 @@ def create_one_unit_action_2(krp, optimize, forced_action=None):
         donc on va faire une fonction : get_local_maximum qui va renvoyer la meilleure selection.
         more in get_local_maximum's docstring
     """
-    list_actions = []
+    # list_actions = []
+    dict_actions = {}
     current_optimize = optimize
     simulated_marking = copy.deepcopy(krp.initial_marking)
     while current_optimize:
@@ -78,73 +81,139 @@ def create_one_unit_action_2(krp, optimize, forced_action=None):
             selection = forced_action
         else:
             selection = get_local_maximum(krp, simulated_marking, possible_actions, current_optimize) # OPTIMIZED
-#            selection = possible_actions[random.randint(0,len(possible_actions) - 1)] # step 3) # RANDOM
-#            selection = possible_actions[0] # NOT RANDOM
+            # selection = possible_actions[random.randint(0,len(possible_actions) - 1)] # step 3) # RANDOM
+            # selection = possible_actions[0] # NOT RANDOM
         current_optimize = None
         simulate_transaction(krp, simulated_marking, selection)
         current_optimize = get_next_optimize(simulated_marking)
-        list_actions.insert(0, selection)
 
-    return list_actions, simulated_marking
+        if selection in dict_actions:
+            dict_actions[selection] += 1
+        else:
+            dict_actions[selection] = 1
 
-def concatenate(krp, list_actions):
-    """
-    Objectif : remettre toutes les actions dans l'ordre
-    lancer les actions des que possibles en meme temps
-    sommer le gain et le cout en cycle
-    retourner un score ?? 
-    1) parcourir la liste des actions. des qu'une action est lancable, la passer dans la "ordered list" et la remove de la list actions
-    2) quand on a parcouru toute la liste, fire each transaction in ordered list
-    3) resourdre la premiere transition
-    4) repeter jusqu'a avoir viday la list_actions
+    return dict_actions, simulated_marking
+
+# def concatenate(krp, list_actions):
+#     """
+#     Objectif : remettre toutes les actions dans l'ordre
+#     lancer les actions des que possibles en meme temps
+#     sommer le gain et le cout en cycle
+#     retourner un score ?? 
+#     1) parcourir la liste des actions. des qu'une action est lancable, la passer dans la "ordered list" et la remove de la list actions
+#     2) quand on a parcouru toute la liste, fire each transaction in ordered list
+#     3) resourdre la premiere transition
+#     4) repeter jusqu'a avoir viday la list_actions
     
-    """
-    ordered_list = []
+#     """
+#     ordered_list = []
+#     current_cycle = krp.initial_marking.cycle
+#     while (len(list_actions)):
+#         index = 0
+#         len_tot = len(list_actions)
+#         while index < len_tot:
+#             if is_firable(krp, list_actions[index]):
+#                 fire_transition(krp, list_actions[index], current_cycle)
+#                 del list_actions[index]
+#                 len_tot -= 1
+#                 continue
+#             index += 1
+#         current_cycle = resolve_nearest_transitions(krp, current_cycle)
+#     krp.initial_marking.cycle = current_cycle
+    
+# def is_firable(krp, transition):
+#     for place_name, required_value in transition.input.items():
+#         if krp.initial_marking.place_tokens[place_name] < required_value:
+#             return False
+#     return True
+
+# def fire_transition(krp, transition, current_cycle):
+#     ending = transition.duration + current_cycle
+#     heappush(krp.initial_marking.transition_tokens, (ending, transition.name)) # transition
+#     for place_name, required_value in transition.input.items():
+#         krp.initial_marking.place_tokens[place_name] -= required_value
+
+    
+
+def concatenate_dict(krp, dict_actions):
     current_cycle = krp.initial_marking.cycle
-    while (len(list_actions)):
-        index = 0
-        len_tot = len(list_actions)
-        while index < len_tot:
-            if is_firable(krp, list_actions[index]):
-                fire_transition(krp, list_actions[index], current_cycle)
-                del list_actions[index]
-                len_tot -= 1
-                continue
-            index += 1
+    while (len(dict_actions)):
+        delete = []
+        for transition, times in dict_actions.items():
+            if is_fireable(krp, transition, 1):
+                if is_fireable(krp, transition, times):
+                    fire_transition(krp, transition, current_cycle, times)
+                    delete.append(transition)
+                else:
+                    fireable_times = get_firable_times(krp, transition, times)
+                    fire_transition(krp, transition, current_cycle, fireable_times)
+                    dict_actions[transition] -= fireable_times
+        for transition in delete:
+            del dict_actions[transition]
         current_cycle = resolve_nearest_transitions(krp, current_cycle)
+        # print_dict_actions(dict_actions)
+        # print(krp.initial_marking.place_tokens)
     krp.initial_marking.cycle = current_cycle
 
+def get_firable_times(krp, transition, times):
+    for fireable_times in range(times, 1):
+        if is_firable(krp, transition, fireable_times):
+            return fireable_times
+    return 1
     
 
-def is_firable(krp, transition):
+def is_fireable(krp, transition, times):
     for place_name, required_value in transition.input.items():
-        if krp.initial_marking.place_tokens[place_name] < required_value:
+        if krp.initial_marking.place_tokens[place_name] < required_value * times:
             return False
     return True
 
-def fire_transition(krp, transition, current_cycle):
+
+def fire_transition(krp, transition, current_cycle, times):
     ending = transition.duration + current_cycle
-    heappush(krp.initial_marking.transition_tokens, (ending, transition.name)) # transition
+    heappush(krp.initial_marking.transition_tokens, (ending, transition.name, times))
     for place_name, required_value in transition.input.items():
-        krp.initial_marking.place_tokens[place_name] -= required_value
+        krp.initial_marking.place_tokens[place_name] -= required_value * times
+
 
 def resolve_nearest_transitions(krp, current_cycle):
+    # print(krp.initial_marking.transition_tokens)
+    # print(krp.initial_marking.place_tokens)
     if len(krp.initial_marking.transition_tokens) == 0:
         return current_cycle
-    transition = heappop(krp.initial_marking.transition_tokens)
-    for place_name, required_value in krp.transitions[transition[1]].output.items():
-        krp.initial_marking.place_tokens[place_name] += required_value
-#    print("{}:{}".format(transition[0] - krp.transitions[transition[1]].duration, transition[1]))
+    cycle = krp.initial_marking.transition_tokens[0][0]
+    while len(krp.initial_marking.transition_tokens) != 0 and krp.initial_marking.transition_tokens[0][0] == cycle:
+        transition = heappop(krp.initial_marking.transition_tokens)
+        for place_name, required_value in krp.transitions[transition[1]].output.items():
+            krp.initial_marking.place_tokens[place_name] += required_value * transition[2]
+        for i in range(0, transition[2]):
+            print("{}:{}".format(transition[0] - krp.transitions[transition[1]].duration, transition[1]))
+    # print(krp.initial_marking.transition_tokens)
+    # print(krp.initial_marking.place_tokens)
     return transition[0]
-    
+
 
 def poc(krp):
+    total_time = time.time()
+    create_time = 0
+    concat_time = 0
 
 #    optimize_list = [krp.optimize[0]]
     while (krp.initial_marking.cycle < krp.delay):
-        list_actions, sim = create_one_unit_action_2(krp, krp.optimize[0])
-        concatenate(krp, list_actions)
-    
-    print(krp.initial_marking)
+        start = time.time()
+        dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0])
+        create_time += time.time() - start
+        start = time.time()
+        concatenate_dict(krp, dict_actions)
+        concat_time += time.time() - start
+
+    # print("total time: ", time.time()-total_time)
+    # print("create time:", create_time)
+    # print("concat time:", concat_time)
+    # print(krp.initial_marking)
 
 
+def print_dict_actions(dict_actions):
+    print("")
+    for key, value in dict_actions.items():
+        print(key.name, value)
