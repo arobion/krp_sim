@@ -19,8 +19,26 @@ def get_next_optimize(sim):
     return (possible_return[0]) # NOT RANDOM
 #    return (possible_return[random.randint(0,len(possible_return) - 1)]) # RANDOM
 
+def get_local_maximum(krp, marking, possible_actions, current_optimize):
+    """
+    How to detect local maximum ? 
+    l'idee est de tester chaque action separement en regardant le resultat final en terme de cycle et de quantite ?
+    donc 1ere idee simple : on relance la create_one_unit_action_2 pour chacune des actions, et on regarde en combien de cycles elle a cree combien de ce que l'on cherche a optimize
+    """
+    if len(possible_actions) == 1:
+        return possible_actions[0]
+    else:
+        save = None
+        save_value = 0
+        for elem in possible_actions:
+            list_actions, sim = create_one_unit_action_2(krp, current_optimize, forced_action=elem)
+            if save_value < sim.place_tokens[current_optimize]:
+                save_value = sim.place_tokens[current_optimize]
+                save = elem
+        return save
 
-def create_one_unit_action_2(krp, optimize):
+
+def create_one_unit_action_2(krp, optimize, forced_action=None):
     """
         1) list optimize reworked
         2) lister toutes les actions possibles
@@ -45,21 +63,29 @@ def create_one_unit_action_2(krp, optimize):
         buy lait : -100 euros (9 800 en realitee) + 90 oeuf + 1996 lait + 10 be + 5 flan
         donc au total avec les 4 actions on fait:
         10 000 euros => 9 800 euros, 90 oeufs, 1996 lait, 10 be, 5 flan
+
+        About greedy find ( recherche de maximum local a chaque fois ).
+        l'idee est de ne plus avoir un choix random, mais un choix determine qui serait le meilleur possible parmis tout les choix disponibles.
+        donc on va faire une fonction : get_local_maximum qui va renvoyer la meilleure selection.
+        more in get_local_maximum's docstring
     """
-    optimize_list = [optimize]
     list_actions = []
-    current_optimize = optimize_list[0]
+    current_optimize = optimize
     simulated_marking = copy.deepcopy(krp.initial_marking)
     while current_optimize:
         possible_actions = krp.places_outputs[current_optimize] # step 2)
-#    selection = list_actions[random.randint(0,len(list_actions) - 1)] # step 3) # RANDOM
-        selection = possible_actions[0] # NOT RANDOM
+        if forced_action in possible_actions:
+            selection = forced_action
+        else:
+            selection = get_local_maximum(krp, simulated_marking, possible_actions, current_optimize) # OPTIMIZED
+#            selection = possible_actions[random.randint(0,len(possible_actions) - 1)] # step 3) # RANDOM
+#            selection = possible_actions[0] # NOT RANDOM
         current_optimize = None
         simulate_transaction(krp, simulated_marking, selection)
         current_optimize = get_next_optimize(simulated_marking)
         list_actions.insert(0, selection)
 
-    return list_actions
+    return list_actions, simulated_marking
 
 def concatenate(krp, list_actions):
     """
@@ -108,7 +134,7 @@ def resolve_nearest_transitions(krp, current_cycle):
     transition = heappop(krp.initial_marking.transition_tokens)
     for place_name, required_value in krp.transitions[transition[1]].output.items():
         krp.initial_marking.place_tokens[place_name] += required_value
-    print("{}:{}".format(transition[0] - krp.transitions[transition[1]].duration, transition[1]))
+#    print("{}:{}".format(transition[0] - krp.transitions[transition[1]].duration, transition[1]))
     return transition[0]
     
 
@@ -116,7 +142,7 @@ def poc(krp):
 
 #    optimize_list = [krp.optimize[0]]
     while (krp.initial_marking.cycle < krp.delay):
-        list_actions = create_one_unit_action_2(krp, "euro")
+        list_actions, sim = create_one_unit_action_2(krp, krp.optimize[0])
         concatenate(krp, list_actions)
     
     print(krp.initial_marking)
