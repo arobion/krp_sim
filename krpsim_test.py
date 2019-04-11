@@ -40,7 +40,32 @@ def get_local_maximum(krp, marking, possible_actions, current_optimize):
         return save
 
 
-def create_one_unit_action_2(krp, optimize, forced_action=None):
+
+def update_dico(action, dico, optimize):
+    if optimize not in dico.keys():
+        dico[optimize] = {action: 1}
+    elif action not in dico[optimize].keys():
+        dico[optimize][action] = 1
+    else:
+        dico[optimize][action] += 1
+
+def get_random_action(random_set, possible_actions, current_optimize):
+    if len(possible_actions) == 1:
+        return possible_actions[0]
+
+    if random_set:
+        threshold = 0
+        rand = random.randint(0, 99)
+        for action, perc in random_set[current_optimize].items():
+            threshold += perc
+            if rand < threshold:
+                for elem in possible_actions:
+                    if elem.name == action:
+                        return elem
+    else:
+        return (possible_actions[random.randint(0,len(possible_actions) - 1)])
+
+def create_one_unit_action_2(krp, optimize, forced_action=None, dico={}, random_set=None):
     """
         1) list optimize reworked
         2) lister toutes les actions possibles
@@ -80,10 +105,14 @@ def create_one_unit_action_2(krp, optimize, forced_action=None):
         if forced_action in possible_actions:
             selection = forced_action
         else:
-            selection = get_local_maximum(krp, simulated_marking, possible_actions, current_optimize) # OPTIMIZED
-            # selection = possible_actions[random.randint(0,len(possible_actions) - 1)] # step 3) # RANDOM
+#            selection = get_local_maximum(krp, simulated_marking, possible_actions, current_optimize) # OPTIMIZED
+            selection = get_random_action(random_set, possible_actions, current_optimize)
+#             selection = possible_actions[random.randint(0,len(possible_actions) - 1)] # step 3) # RANDOM
             # selection = possible_actions[0] # NOT RANDOM
+        if len(possible_actions) > 1:
+            update_dico(selection, dico, current_optimize)
         current_optimize = None
+#        print(selection)
         simulate_transaction(krp, simulated_marking, selection)
         current_optimize = get_next_optimize(simulated_marking)
 
@@ -143,10 +172,18 @@ def resolve_nearest_transitions(krp, current_cycle):
         transition = heappop(krp.initial_marking.transition_tokens)
         for place_name, required_value in krp.transitions[transition[1]].output.items():
             krp.initial_marking.place_tokens[place_name] += required_value * transition[2]
-        for i in range(0, transition[2]):
-            print("{}:{}".format(transition[0] - krp.transitions[transition[1]].duration, transition[1]))
+#        for i in range(0, transition[2]):
+#            print("{}:{}".format(transition[0] - krp.transitions[transition[1]].duration, transition[1]))
     return transition[0]
 
+def print_dico(dico):
+    for opt, stats in dico.items():
+        print(opt)
+        tot = 0
+        for act, nb in stats.items():
+            tot += nb
+        for act, nb in stats.items():
+            print("    {} : {:.0f} %".format(act.name, (nb / tot) * 100))
 
 def poc(krp):
     # total_time = time.time()
@@ -154,18 +191,23 @@ def poc(krp):
     # concat_time = 0
 
     # optimize_list = [krp.optimize[0]]
+    dico = {}
+    random_set = {'euro' : {'vente_flan' : 4, 'vente_tarte_pomme' : 38, 'vente_boite' : 53, 'vente_tarte_citron': 6},
+                  'oeuf' : {'buy_oeuf' : 51, 'reunion_oeuf': 49},
+                  'blanc_oeuf' : {'do_pate_sablee' : 51, 'separation_oeuf': 49} }
     while (krp.initial_marking.cycle < krp.delay):
-        start = time.time()
-        dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0])
-        create_time += time.time() - start
-        start = time.time()
+#        start = time.time()
+        dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0], dico=dico, random_set=random_set)
+#        create_time += time.time() - start
+#        start = time.time()
         concatenate_dict(krp, dict_actions)
-        concat_time += time.time() - start
+#        concat_time += time.time() - start
 
     # print("total time: ", time.time()-total_time)
     # print("create time:", create_time)
     # print("concat time:", concat_time)
-    # print(krp.initial_marking)
+    print_dico(dico)
+    print(krp.initial_marking)
 
 
 def print_dict_actions(dict_actions):
