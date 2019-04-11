@@ -58,13 +58,15 @@ def get_random_action(random_set, possible_actions, current_optimize):
         for act, nb in random_set[current_optimize].items():
             tot += nb
         threshold = 0
-        rand = random.randint(0, tot)
+        rand = random.randint(0, tot - 1)
         for action, perc in random_set[current_optimize].items():
             threshold += perc
             if rand < threshold:
-                for elem in possible_actions:
-                    if elem.name == action:
-                        return elem
+                return action
+#                return possible_actions[possible_actions.index(action)]
+#                for elem in possible_actions:
+#                    if elem.name == action:
+#                        return elem
     else:
         return (possible_actions[random.randint(0,len(possible_actions) - 1)])
 
@@ -199,25 +201,28 @@ def poc(krp):
 #    random_set = {'euro' : {'vente_flan' : 4, 'vente_tarte_pomme' : 38, 'vente_boite' : 53, 'vente_tarte_citron': 6},
 #                  'oeuf' : {'buy_oeuf' : 51, 'reunion_oeuf': 49},
 #                  'blanc_oeuf' : {'do_pate_sablee' : 51, 'separation_oeuf': 49} }
-    iterations = 5;
-    nb_agents = 5;
+    iterations = 10;
+    nb_agents = 10;
     best_marking = None 
     best_score = 0
-    best_random = {}
+    best_random_set = None
     for i in range(0, iterations):
-        dico = {}
-        while (krp.initial_marking.cycle < krp.delay):
-#        start = time.time()
-            dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0], dico=dico, random_set=random_set)
-#        create_time += time.time() - start
-#        start = time.time()
-            concatenate_dict(krp, dict_actions)
-#        concat_time += time.time() - start
-        if krp.initial_marking.place_tokens[krp.optimize[0]] > best_score:
-            best_score = krp.initial_marking.place_tokens[krp.optimize[0]]
-            best_marking = copy.deepcopy(krp.initial_marking)
-            best_random_set = dico
-        krp.initial_marking = Marking(0, krp.initial_place_tokens.copy(), [], krp.transitions)
+        random_set = best_random_set
+        for i in range(0, nb_agents):
+            dico = {}
+            while (krp.initial_marking.cycle < krp.delay):
+    #        start = time.time()
+                dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0], dico=dico, random_set=random_set)
+    #        create_time += time.time() - start
+    #        start = time.time()
+                concatenate_dict(krp, dict_actions)
+    #        concat_time += time.time() - start
+            if krp.initial_marking.place_tokens[krp.optimize[0]] > best_score:
+                best_score = krp.initial_marking.place_tokens[krp.optimize[0]]
+                best_marking = copy.deepcopy(krp.initial_marking)
+                best_random_set = dico
+            krp.initial_marking = Marking(0, krp.initial_place_tokens.copy(), [], krp.transitions)
+
     print_dico(best_random_set)
     print(best_marking)
 
