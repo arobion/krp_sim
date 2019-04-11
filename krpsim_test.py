@@ -93,46 +93,6 @@ def create_one_unit_action_2(krp, optimize, forced_action=None):
             dict_actions[selection] = 1
 
     return dict_actions, simulated_marking
-
-# def concatenate(krp, list_actions):
-#     """
-#     Objectif : remettre toutes les actions dans l'ordre
-#     lancer les actions des que possibles en meme temps
-#     sommer le gain et le cout en cycle
-#     retourner un score ?? 
-#     1) parcourir la liste des actions. des qu'une action est lancable, la passer dans la "ordered list" et la remove de la list actions
-#     2) quand on a parcouru toute la liste, fire each transaction in ordered list
-#     3) resourdre la premiere transition
-#     4) repeter jusqu'a avoir viday la list_actions
-    
-#     """
-#     ordered_list = []
-#     current_cycle = krp.initial_marking.cycle
-#     while (len(list_actions)):
-#         index = 0
-#         len_tot = len(list_actions)
-#         while index < len_tot:
-#             if is_firable(krp, list_actions[index]):
-#                 fire_transition(krp, list_actions[index], current_cycle)
-#                 del list_actions[index]
-#                 len_tot -= 1
-#                 continue
-#             index += 1
-#         current_cycle = resolve_nearest_transitions(krp, current_cycle)
-#     krp.initial_marking.cycle = current_cycle
-    
-# def is_firable(krp, transition):
-#     for place_name, required_value in transition.input.items():
-#         if krp.initial_marking.place_tokens[place_name] < required_value:
-#             return False
-#     return True
-
-# def fire_transition(krp, transition, current_cycle):
-#     ending = transition.duration + current_cycle
-#     heappush(krp.initial_marking.transition_tokens, (ending, transition.name)) # transition
-#     for place_name, required_value in transition.input.items():
-#         krp.initial_marking.place_tokens[place_name] -= required_value
-
     
 
 def concatenate_dict(krp, dict_actions):
@@ -151,16 +111,15 @@ def concatenate_dict(krp, dict_actions):
         for transition in delete:
             del dict_actions[transition]
         current_cycle = resolve_nearest_transitions(krp, current_cycle)
-        # print_dict_actions(dict_actions)
-        # print(krp.initial_marking.place_tokens)
     krp.initial_marking.cycle = current_cycle
+
 
 def get_firable_times(krp, transition, times):
     for fireable_times in range(times, 1):
         if is_firable(krp, transition, fireable_times):
             return fireable_times
     return 1
-    
+
 
 def is_fireable(krp, transition, times):
     for place_name, required_value in transition.input.items():
@@ -177,8 +136,6 @@ def fire_transition(krp, transition, current_cycle, times):
 
 
 def resolve_nearest_transitions(krp, current_cycle):
-    # print(krp.initial_marking.transition_tokens)
-    # print(krp.initial_marking.place_tokens)
     if len(krp.initial_marking.transition_tokens) == 0:
         return current_cycle
     cycle = krp.initial_marking.transition_tokens[0][0]
@@ -188,8 +145,6 @@ def resolve_nearest_transitions(krp, current_cycle):
             krp.initial_marking.place_tokens[place_name] += required_value * transition[2]
         for i in range(0, transition[2]):
             print("{}:{}".format(transition[0] - krp.transitions[transition[1]].duration, transition[1]))
-    # print(krp.initial_marking.transition_tokens)
-    # print(krp.initial_marking.place_tokens)
     return transition[0]
 
 
