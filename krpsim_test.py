@@ -167,8 +167,8 @@ def fire_transition(krp, transition, current_cycle, times):
     heappush(krp.initial_marking.transition_tokens, (ending, transition.name, times))
     for place_name, required_value in transition.input.items():
         krp.initial_marking.place_tokens[place_name] -= required_value * times
-        for i in range(0, times):
-            print("{}:{}".format(current_cycle, transition.name))
+#    for i in range(0, times):
+#        print("{}:{}".format(current_cycle, transition.name))
 
 
 def resolve_nearest_transitions(krp, current_cycle):
@@ -190,13 +190,20 @@ def print_dico(dico):
         for act, nb in stats.items():
             print("    {} : {:.0f} %".format(act.name, (nb / tot) * 100))
 
+def run_one_agent(krp, dico, random_set):
+    while krp.initial_marking.cycle < krp.delay:
+        dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0], dico=dico, random_set=random_set)
+#        print_dict_actions(dict_actions)
+        concatenate_dict(krp, dict_actions)
+
+
 def poc(krp):
     # optimize_list = [krp.optimize[0]]
     dico = {}
     random_set = None
 
-    iterations = 1
-    nb_agents = 1
+    iterations = 10
+    nb_agents = 10
     best_marking = None 
     best_score = 0
     best_random_set = None
@@ -204,9 +211,7 @@ def poc(krp):
         random_set = best_random_set
         for i in range(0, nb_agents):
             dico = {}
-            while (krp.initial_marking.cycle < krp.delay):
-                dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0], dico=dico, random_set=random_set)
-                concatenate_dict(krp, dict_actions)
+            run_one_agent(krp, dico, random_set)
             if krp.initial_marking.place_tokens[krp.optimize[0]] > best_score:
                 best_score = krp.initial_marking.place_tokens[krp.optimize[0]]
                 best_marking = copy.deepcopy(krp.initial_marking)
