@@ -83,6 +83,14 @@ def no_positive_actions(possible_actions, current_optimize):
     return True
              
 
+def requirements_marking(transition, sim, optimize):
+    # print(transition, sim)
+    for place, value in transition.input.items():
+        if sim.place_tokens[place] - value < 0 and optimize == place:
+            return 0
+    return 1     
+
+
 def create_one_unit_action_2(krp, optimize, forced_action=None, dico={}, random_set=None):
     """
         1) list optimize reworked
@@ -114,7 +122,7 @@ def create_one_unit_action_2(krp, optimize, forced_action=None, dico={}, random_
         donc on va faire une fonction : get_local_maximum qui va renvoyer la meilleure selection.
         more in get_local_maximum's docstring
     """
-    dict_actions = {}
+    list_actions = []
     current_optimize = optimize
     simulated_marking = copy.deepcopy(krp.initial_marking)
 
@@ -135,38 +143,36 @@ def create_one_unit_action_2(krp, optimize, forced_action=None, dico={}, random_
 
         if len(possible_actions) > 1:
             update_dico(selection, dico, current_optimize)   # update true random
-        current_optimize = None
-
+        # current_optimize = None
+        if requirements_marking(selection, simulated_marking, current_optimize) == 0:
+            continue
         simulate_before(krp, simulated_marking, selection)
+        # print(simulated_marking)
         current_optimize = get_next_optimize(simulated_marking)
         simulate_after(krp, simulated_marking, selection)
+        # print(simulated_marking)
 
-        if selection in dict_actions:
-            dict_actions[selection] += 1
-        else:
-            dict_actions[selection] = 1
+        list_actions.insert(0, selection)
 
-    print(simulated_marking)
-    return dict_actions, simulated_marking
+    #print(simulated_marking)
+    return list_actions, simulated_marking
     
 
-def concatenate_dict(krp, dict_actions):
+def concatenate_dict(krp, list_actions):
+    # print(krp.initial_marking)
+    # for elem in list_actions:
+    #     print(elem)
     current_cycle = krp.initial_marking.cycle
-    while (len(dict_actions)):
-#        print_dict_actions(dict_actions)
-#        print(krp.initial_marking)
-        delete = []
-        for transition, times in dict_actions.items():
-            if is_fireable(krp, transition, 1):
-                if is_fireable(krp, transition, times):
-                    fire_transition(krp, transition, current_cycle, times)
-                    delete.append(transition)
-                else:
-                    fireable_times = get_firable_times(krp, transition, times)
-                    fire_transition(krp, transition, current_cycle, fireable_times)
-                    dict_actions[transition] -= fireable_times
-        for transition in delete:
-            del dict_actions[transition]
+    while (len(list_actions)):
+        index = 0
+        total_len = len(list_actions)
+        while index < total_len:
+            if is_fireable(krp, list_actions[index], 1):
+                fire_transition(krp, list_actions[index], current_cycle, 1)
+                del list_actions[index]
+                total_len -= 1
+                continue
+            index += 1
         current_cycle = resolve_nearest_transitions(krp, current_cycle)
     krp.initial_marking.cycle = current_cycle
 
@@ -220,9 +226,7 @@ def run_one_agent(krp, dico, random_set):
         if dict_actions == None:
             return
 
-        print_dict_actions(dict_actions)
-        print(krp.initial_marking)
-#        print_dict_actions(dict_actions)
+        # print(krp.initial_marking)
         concatenate_dict(krp, dict_actions)
 
 
@@ -254,7 +258,7 @@ def poc(krp):
 #    print(krp.initial_marking)
 
 
-def print_dict_actions(dict_actions):
-    print("")
-    for key, value in dict_actions.items():
-        print(key.name, value)
+# def print_dict_actions(dict_actions):
+#     print("")
+#     for key, value in dict_actions.items():
+#         print(key.name, value)
