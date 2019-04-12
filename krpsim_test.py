@@ -5,9 +5,11 @@ from heapq import heappop, heappush
 import time
 import sys
 
-def simulate_transaction(krp, sim, transition):
+def simulate_before(krp, sim, transition):
     for place_name, quantity in transition.input.items():
         sim.place_tokens[place_name] -= quantity
+
+def simulate_after(krp, sim, transition):
     for place_name, quantity in transition.output.items():
         sim.place_tokens[place_name] += quantity
 
@@ -70,6 +72,17 @@ def get_random_action(random_set, possible_actions, current_optimize):
     else:
         return (possible_actions[random.randint(0,len(possible_actions) - 1)])
 
+
+def no_positive_actions(possible_actions, current_optimize):
+    for elem in possible_actions:
+        if current_optimize not in elem.input.keys():
+            return False
+        else:
+            if elem.output[current_optimize] - elem.input[current_optimize] > 0:
+                return False
+    return True
+             
+
 def create_one_unit_action_2(krp, optimize, forced_action=None, dico={}, random_set=None):
     """
         1) list optimize reworked
@@ -101,37 +114,47 @@ def create_one_unit_action_2(krp, optimize, forced_action=None, dico={}, random_
         donc on va faire une fonction : get_local_maximum qui va renvoyer la meilleure selection.
         more in get_local_maximum's docstring
     """
-    # list_actions = []
     dict_actions = {}
     current_optimize = optimize
     simulated_marking = copy.deepcopy(krp.initial_marking)
+
     while current_optimize:
         possible_actions = krp.places_outputs[current_optimize] # step 2)
+
+        if no_positive_actions(possible_actions, current_optimize) == True: # Check dead looop
+            return None, None
+
         if forced_action in possible_actions:
             selection = forced_action
         else:
-#            selection = get_local_maximum(krp, simulated_marking, possible_actions, current_optimize) # OPTIMIZED
             selection = get_random_action(random_set, possible_actions, current_optimize)
-#             selection = possible_actions[random.randint(0,len(possible_actions) - 1)] # step 3) # RANDOM
-            # selection = possible_actions[0] # NOT RANDOM
+
+        if current_optimize in selection.input.keys():
+            if selection.output[current_optimize] - selection.input[current_optimize] <= 0: # check the action is positive
+                continue
+
         if len(possible_actions) > 1:
-            update_dico(selection, dico, current_optimize)
+            update_dico(selection, dico, current_optimize)   # update true random
         current_optimize = None
-#        print(selection)
-        simulate_transaction(krp, simulated_marking, selection)
+
+        simulate_before(krp, simulated_marking, selection)
         current_optimize = get_next_optimize(simulated_marking)
+        simulate_after(krp, simulated_marking, selection)
 
         if selection in dict_actions:
             dict_actions[selection] += 1
         else:
             dict_actions[selection] = 1
 
+    print(simulated_marking)
     return dict_actions, simulated_marking
     
 
 def concatenate_dict(krp, dict_actions):
     current_cycle = krp.initial_marking.cycle
     while (len(dict_actions)):
+#        print_dict_actions(dict_actions)
+#        print(krp.initial_marking)
         delete = []
         for transition, times in dict_actions.items():
             if is_fireable(krp, transition, 1):
@@ -182,17 +205,23 @@ def resolve_nearest_transitions(krp, current_cycle):
     return transition[0]
 
 def print_dico(dico):
-    for opt, stats in dico.items():
-        print(opt)
-        tot = 0
-        for act, nb in stats.items():
-            tot += nb
-        for act, nb in stats.items():
-            print("    {} : {:.0f} %".format(act.name, (nb / tot) * 100))
+    if dico:
+        for opt, stats in dico.items():
+            print(opt)
+            tot = 0
+            for act, nb in stats.items():
+                tot += nb
+            for act, nb in stats.items():
+                print("    {} : {:.0f} %".format(act.name, (nb / tot) * 100))
 
 def run_one_agent(krp, dico, random_set):
     while krp.initial_marking.cycle < krp.delay:
         dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0], dico=dico, random_set=random_set)
+        if dict_actions == None:
+            return
+
+        print_dict_actions(dict_actions)
+        print(krp.initial_marking)
 #        print_dict_actions(dict_actions)
         concatenate_dict(krp, dict_actions)
 
@@ -202,8 +231,8 @@ def poc(krp):
     dico = {}
     random_set = None
 
-    iterations = 10
-    nb_agents = 10
+    iterations = 1
+    nb_agents = 1
     best_marking = None 
     best_score = 0
     best_random_set = None
