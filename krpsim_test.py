@@ -2,6 +2,7 @@ import random
 import copy
 from krpsim_marking import Marking
 from heapq import heappop, heappush
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import time
 import sys
 
@@ -20,28 +21,8 @@ def get_next_optimize(sim):
             possible_return.append(place_name)
     if len(possible_return) == 0:
         return None
-    return (possible_return[0]) # NOT RANDOM
-#    return (possible_return[random.randint(0,len(possible_return) - 1)]) # RANDOM
-
-def get_local_maximum(krp, marking, possible_actions, current_optimize):
-    """
-    How to detect local maximum ? 
-    l'idee est de tester chaque action separement en regardant le resultat final en terme de cycle et de quantite ?
-    donc 1ere idee simple : on relance la create_one_unit_action_2 pour chacune des actions, et on regarde en combien de cycles elle a cree combien de ce que l'on cherche a optimize
-    """
-    if len(possible_actions) == 1:
-        return possible_actions[0]
-    else:
-        save = None
-        save_value = 0
-        for elem in possible_actions:
-            list_actions, sim = create_one_unit_action_2(krp, current_optimize, forced_action=elem)
-            if save_value < sim.place_tokens[current_optimize]:
-                save_value = sim.place_tokens[current_optimize]
-                save = elem
-        return save
-
-
+#    return (possible_return[0]) # NOT RANDOM
+    return (possible_return[random.randint(0,len(possible_return) - 1)]) # RANDOM
 
 def update_dico(action, dico, optimize):
     if optimize not in dico.keys():
@@ -65,10 +46,6 @@ def get_random_action(random_set, possible_actions, current_optimize):
             threshold += perc
             if rand < threshold:
                 return action
-#                return possible_actions[possible_actions.index(action)]
-#                for elem in possible_actions:
-#                    if elem.name == action:
-#                        return elem
     else:
         return (possible_actions[random.randint(0,len(possible_actions) - 1)])
 
@@ -84,7 +61,6 @@ def no_positive_actions(possible_actions, current_optimize):
              
 
 def requirements_marking(transition, sim, optimize):
-    # print(transition, sim)
     for place, value in transition.input.items():
         if sim.place_tokens[place] - value < 0 and optimize == place:
             return 0
@@ -143,25 +119,18 @@ def create_one_unit_action_2(krp, optimize, forced_action=None, dico={}, random_
 
         if len(possible_actions) > 1:
             update_dico(selection, dico, current_optimize)   # update true random
-        # current_optimize = None
         if requirements_marking(selection, simulated_marking, current_optimize) == 0:
             continue
         simulate_before(krp, simulated_marking, selection)
-        # print(simulated_marking)
         current_optimize = get_next_optimize(simulated_marking)
         simulate_after(krp, simulated_marking, selection)
-        # print(simulated_marking)
 
         list_actions.insert(0, selection)
 
-    #print(simulated_marking)
     return list_actions, simulated_marking
     
 
 def concatenate_dict(krp, list_actions):
-    # print(krp.initial_marking)
-    # for elem in list_actions:
-    #     print(elem)
     current_cycle = krp.initial_marking.cycle
     while (len(list_actions)):
         index = 0
@@ -226,8 +195,8 @@ def run_one_agent(krp, dico, random_set):
         if dict_actions == None:
             return
 
-        # print(krp.initial_marking)
         concatenate_dict(krp, dict_actions)
+    return tuple((dico, krp))
 
 
 def poc(krp):
@@ -235,28 +204,32 @@ def poc(krp):
     dico = {}
     random_set = None
 
-    iterations = 1
-    nb_agents = 1
+    iterations = 5
+    nb_agents = 12
     best_marking = None 
     best_score = 0
     best_random_set = None
     for i in range(0, iterations):
         random_set = best_random_set
-        for i in range(0, nb_agents):
-            dico = {}
-            run_one_agent(krp, dico, random_set)
-            if krp.initial_marking.place_tokens[krp.optimize[0]] > best_score:
-                best_score = krp.initial_marking.place_tokens[krp.optimize[0]]
-                best_marking = copy.deepcopy(krp.initial_marking)
-                best_random_set = dico
+        futures = []
+        with ProcessPoolExecutor(max_workers=nb_agents) as pool:
+            for i in range(0, nb_agents):
+                dico = {}
+                fut = pool.submit(run_one_agent, krp, dico, random_set)
+                futures.append(fut)
+        results = []
+        for res in as_completed(futures):
+            results.append(res.result())
+
+            if res.result()[1].initial_marking.place_tokens[krp.optimize[0]] > best_score:
+                best_score = res.result()[1].initial_marking.place_tokens[krp.optimize[0]]
+                best_marking = copy.deepcopy(res.result()[1].initial_marking)
+                best_random_set = res.result()[0]
             krp.initial_marking = Marking(0, krp.initial_place_tokens.copy(), [], krp.transitions)
+
 
     print_dico(best_random_set)
     print(best_marking)
-
-#    print_dico(dico)
-#    print(krp.initial_marking)
-
 
 # def print_dict_actions(dict_actions):
 #     print("")
