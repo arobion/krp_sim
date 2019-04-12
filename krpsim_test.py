@@ -167,6 +167,8 @@ def fire_transition(krp, transition, current_cycle, times):
     heappush(krp.initial_marking.transition_tokens, (ending, transition.name, times))
     for place_name, required_value in transition.input.items():
         krp.initial_marking.place_tokens[place_name] -= required_value * times
+        for i in range(0, times):
+            print("{}:{}".format(current_cycle, transition.name))
 
 
 def resolve_nearest_transitions(krp, current_cycle):
@@ -177,8 +179,6 @@ def resolve_nearest_transitions(krp, current_cycle):
         transition = heappop(krp.initial_marking.transition_tokens)
         for place_name, required_value in krp.transitions[transition[1]].output.items():
             krp.initial_marking.place_tokens[place_name] += required_value * transition[2]
-#        for i in range(0, transition[2]):
-#            print("{}:{}".format(transition[0] - krp.transitions[transition[1]].duration, transition[1]))
     return transition[0]
 
 def print_dico(dico):
@@ -191,18 +191,12 @@ def print_dico(dico):
             print("    {} : {:.0f} %".format(act.name, (nb / tot) * 100))
 
 def poc(krp):
-    # total_time = time.time()
-    # create_time = 0
-    # concat_time = 0
-
     # optimize_list = [krp.optimize[0]]
     dico = {}
     random_set = None
-#    random_set = {'euro' : {'vente_flan' : 4, 'vente_tarte_pomme' : 38, 'vente_boite' : 53, 'vente_tarte_citron': 6},
-#                  'oeuf' : {'buy_oeuf' : 51, 'reunion_oeuf': 49},
-#                  'blanc_oeuf' : {'do_pate_sablee' : 51, 'separation_oeuf': 49} }
-    iterations = 10;
-    nb_agents = 10;
+
+    iterations = 1
+    nb_agents = 1
     best_marking = None 
     best_score = 0
     best_random_set = None
@@ -211,12 +205,8 @@ def poc(krp):
         for i in range(0, nb_agents):
             dico = {}
             while (krp.initial_marking.cycle < krp.delay):
-    #        start = time.time()
                 dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0], dico=dico, random_set=random_set)
-    #        create_time += time.time() - start
-    #        start = time.time()
                 concatenate_dict(krp, dict_actions)
-    #        concat_time += time.time() - start
             if krp.initial_marking.place_tokens[krp.optimize[0]] > best_score:
                 best_score = krp.initial_marking.place_tokens[krp.optimize[0]]
                 best_marking = copy.deepcopy(krp.initial_marking)
@@ -226,9 +216,6 @@ def poc(krp):
     print_dico(best_random_set)
     print(best_marking)
 
-    # print("total time: ", time.time()-total_time)
-    # print("create time:", create_time)
-    # print("concat time:", concat_time)
 #    print_dico(dico)
 #    print(krp.initial_marking)
 
