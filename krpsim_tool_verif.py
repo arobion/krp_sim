@@ -34,10 +34,15 @@ class Env():
     
     def update_cycle(self, new_cycle):
         self.cycle = new_cycle
-        for process in self.active_process:
-            if process.cycle_ending <= new_cycle:
-                self.add_output(process)
-                del process
+        index = 0
+        len_tot = len(self.active_process)
+        while index < len_tot:
+            if self.active_process[index].cycle_ending <= new_cycle:
+                self.add_output(self.active_process[index])
+                del self.active_process[index]
+                len_tot -= 1
+                continue
+            index += 1
     
     def process(self, name):
         new_process = Process()
@@ -45,6 +50,7 @@ class Env():
         for stock, quant in ref_process.input.items():
             self.conf.stock[stock] -= quant
             if self.conf.stock[stock] < 0:
+                print(self.conf.stock)
                 raise KRPError("Algorithm Error at cycle {} on process '{}': it's impossible to use more stock than available".format(self.cycle, name))
         new_process.output = ref_process.output
         new_process.cycle_ending = self.cycle + ref_process.duration
