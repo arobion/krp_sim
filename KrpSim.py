@@ -14,7 +14,7 @@ def main():
 
     krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(), [], krpsim.transitions)
 
-    # brute_force(krpsim)
+    #brute_force(krpsim)
     # print(type(krpsim.optimize[0]))
     poc(krpsim)
 

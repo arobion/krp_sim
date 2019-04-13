@@ -203,6 +203,7 @@ def run_one_agent(krp, dico, random_set):
         concatenate_dict(krp, dict_actions, out)
     return tuple((dico, krp, out))
 
+from krpsim_coverability import brute_force
 
 def poc(krp):
     # optimize_list = [krp.optimize[0]]
@@ -214,7 +215,9 @@ def poc(krp):
     best_marking = None 
     best_score = 0
     best_random_set = None
+    brute_force_result = brute_force(copy.deepcopy(krp))
     for i in range(0, iterations):
+        #print('oo')
         random_set = best_random_set
         futures = []
         with ProcessPoolExecutor(max_workers=nb_agents) as pool:
@@ -235,6 +238,11 @@ def poc(krp):
                 best_out = res.result()[2]
             krp.initial_marking = Marking(0, krp.initial_place_tokens.copy(), [], krp.transitions)
 
-    #print("{}".format(best_out[0]))
-    print_dico(best_random_set)
-    print(best_marking)
+    # Comparison with brute force approach
+    
+    if brute_force_result.initial_marking.place_tokens[krp.optimize[0]] > best_score:
+       print(brute_force_result.initial_marking)
+    else:
+        print("{}".format(best_out[0]))
+        print_dico(best_random_set)
+        print(best_marking)

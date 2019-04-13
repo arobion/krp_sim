@@ -1,5 +1,6 @@
 from heapq import heappop, heappush
 import sys
+import time
 
 class Marking:
 
@@ -12,6 +13,8 @@ class Marking:
         self.prev = None
         self.processed_cycle = processed_cycle
         self.nexts = []
+        self.start_time = 0
+        self.timeout = 3
 
     def __lt__(self, other):
         return (self.processed_cycle > other.processed_cycle)
@@ -28,13 +31,16 @@ class Marking:
         for key, val in transition.output.items():
             self.processed_state[key] += val
 
-    def get_nexts(self):
+    def get_nexts(self, start_time):
+        self.start_time = start_time
         self.get_transition_combinations(self, 0)
         return self.nexts
 
     def get_transition_combinations(self, current, index):
         # stop when run through all transition
         # then finish the nearest transition
+        if time.time() > self.start_time + self.timeout:
+            return
         if index >= len(self.transition_keys):
             if current.finish_nearest_transition():
                 self.nexts.append(current)
@@ -48,6 +54,7 @@ class Marking:
         transition = self.transitions[self.transition_keys[index]]
         times = 1
         while self.can_do_transition(current, transition, times):
+            
             next = self.create_new_marking(current, transition, times)
             self.get_transition_combinations(next, index + 1)
             times += 1
