@@ -132,14 +132,14 @@ def create_one_unit_action_2(krp, optimize, forced_action=None, dico={}, random_
     return list_actions, simulated_marking
 
 
-def concatenate_dict(krp, list_actions):
+def concatenate_dict(krp, list_actions, out):
     current_cycle = krp.initial_marking.cycle
     while (len(list_actions)):
         index = 0
         total_len = len(list_actions)
         while index < total_len:
             if is_fireable(krp, list_actions[index], 1):
-                fire_transition(krp, list_actions[index], current_cycle, 1)
+                fire_transition(krp, list_actions[index], current_cycle, 1, out)
                 del list_actions[index]
                 total_len -= 1
                 continue
@@ -162,13 +162,13 @@ def is_fireable(krp, transition, times):
     return True
 
 
-def fire_transition(krp, transition, current_cycle, times):
+def fire_transition(krp, transition, current_cycle, times, out):
     ending = transition.duration + current_cycle
     heappush(krp.initial_marking.transition_tokens, (ending, transition.name, times))
     for place_name, required_value in transition.input.items():
         krp.initial_marking.place_tokens[place_name] -= required_value * times
-    # for i in range(0, times):
-    #     print("{}:{}".format(current_cycle, transition.name))
+    for i in range(0, times):
+        out[0] = out[0] + "{}:{}\n".format(current_cycle, transition.name)
 
 
 def resolve_nearest_transitions(krp, current_cycle):
@@ -194,13 +194,14 @@ def print_dico(dico):
 
 
 def run_one_agent(krp, dico, random_set):
+    out = [""]
     while krp.initial_marking.cycle < krp.delay:
         dict_actions, sim = create_one_unit_action_2(krp, krp.optimize[0], dico=dico, random_set=random_set)
         if dict_actions is None:
             break
 
-        concatenate_dict(krp, dict_actions)
-    return tuple((dico, krp))
+        concatenate_dict(krp, dict_actions, out)
+    return tuple((dico, krp, out))
 
 
 def poc(krp):
@@ -231,7 +232,9 @@ def poc(krp):
                 best_score = res.result()[1].initial_marking.place_tokens[krp.optimize[0]]
                 best_marking = copy.deepcopy(res.result()[1].initial_marking)
                 best_random_set = res.result()[0]
+                best_out = res.result()[2]
             krp.initial_marking = Marking(0, krp.initial_place_tokens.copy(), [], krp.transitions)
 
+    #print("{}".format(best_out[0]))
     print_dico(best_random_set)
     print(best_marking)
