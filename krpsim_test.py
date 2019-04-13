@@ -240,8 +240,8 @@ def poc(krp):
 
     # Comparison with brute force approach
     
-    if brute_force_result.initial_marking.place_tokens[krp.optimize[0]] > best_score:
-       print(brute_force_result.initial_marking)
+    if brute_force_result[1].initial_marking.place_tokens[krp.optimize[0]] > best_score:
+        print(brute_force_result[2])
     else:
         print("{}".format(best_out[0]))
         print_dico(best_random_set)

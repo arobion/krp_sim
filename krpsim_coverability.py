@@ -28,13 +28,7 @@ def brute_force(krpsim):
     best = krpsim.initial_marking
     heappush(queue, (krpsim.initial_marking.cycle, krpsim.initial_marking))
     start_time = time.time()
-    #timeout = 3
-    #print(start_time)
     while queue:
-        
-        #print(time.time())
-        #if time.time() > start_time + timeout:
-        #    print('ok')
         now = heappop(queue)[1]
 
         if now.cycle > krpsim.delay:
@@ -46,10 +40,6 @@ def brute_force(krpsim):
         if is_visited(now, visited_place, visited_transition):
             continue
 
-        # use this to set a limit
-        # if now.place_tokens[optimize] == 1:
-        #     break
-
         visited_place.add(tuple(now.place_tokens.items()))
         visited_transition.add(tuple(now.transition_tokens))
 
@@ -60,12 +50,4 @@ def brute_force(krpsim):
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
         
-    krpsim.initial_marking = best
-    return (krpsim)
-    # print_best(best)
-
-
-def print_best(best):
-    if best.prev:
-        print_best(best.prev)
-    print(best)
+    return (None, krpsim, best.out)
