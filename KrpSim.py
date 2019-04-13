@@ -8,15 +8,14 @@ from krpsim_test import poc
 def main():
     setting = Setting()
     krpsim = KrpsimGraph(setting)
-#    print(krpsim)
 
-#    krpsim.reduce();
+    # print(krpsim)
+    # krpsim.reduce();
 
     krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(), [], krpsim.transitions)
-    
 
-    #brute_force(krpsim)
-#    print(type(krpsim.optimize[0]))
+    # brute_force(krpsim)
+    # print(type(krpsim.optimize[0]))
     poc(krpsim)
 
 if __name__ == "__main__":
