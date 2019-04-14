@@ -1,5 +1,6 @@
 from heapq import heappop, heappush
-import time 
+import time
+
 
 def is_better(m1, m2, optimize):
     if m1.cycle == 0 and m2.cycle == 0:
@@ -46,8 +47,7 @@ def brute_force(krpsim):
         nexts = now.get_nexts(start_time)
 
         for next_one in nexts:
-            
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
-        
+
     return (None, krpsim, best.out)

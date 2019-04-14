@@ -1,0 +1,28 @@
+1) list optimize reworked
+2) lister toutes les actions possibles
+3) choose randomly one
+4) simuler cette action sur les places du graph
+5) define new optimize by a (random?)negative place value
+6) relaunch
+7) repeat until optimize = void
+
+Rework sur le calcul des quantitees.
+il va falloir simuler chaque actions, pour prendre en compte si une autre action doit etre faite.
+donc on a notre point de depart avec la liste des places
+chaque ation ajoutee a la liste, va modifier cette liste :
+do flan va faire : - 10 jaune d'oeuf, - 4 lait, + 5 flan
+etc etc pour chaque action
+donc ensuite pour realiser un flan il va falloir que l'on optimize l'un des negatifs, par exemple jaune d'oeuf. ## NOTION DE CHOIX AU HASARD OU ALORS DANS L'ORDRE ?? 
+donc l'action separation oeuf => -1 oeuf, + 1 jaune d'oeuf, + 1 blanc d'oeuf
+repeat while oeuf is negatif
+total : - 10 oeuf, -4 lait, +10 be + 5 flan
+il manque les oeuf:
+buy oeuf : -100 euros (9 900 en realitees) + 90 oeuf - 4 lait + 10 be + 5 flan
+buy lait : -100 euros (9 800 en realitee) + 90 oeuf + 1996 lait + 10 be + 5 flan
+donc au total avec les 4 actions on fait:
+10 000 euros => 9 800 euros, 90 oeufs, 1996 lait, 10 be, 5 flan
+
+About greedy find ( recherche de maximum local a chaque fois ).
+l'idee est de ne plus avoir un choix random, mais un choix determine qui serait le meilleur possible parmis tout les choix disponibles.
+donc on va faire une fonction : get_local_maximum qui va renvoyer la meilleure selection.
+more in get_local_maximum's docstring

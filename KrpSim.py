@@ -1,4 +1,4 @@
-from krpsim_coverability import brute_force
+from krpsim_bruteforce import brute_force
 from krpsim_graph import KrpsimGraph
 from krpsim_setting import Setting
 from krpsim_marking import Marking

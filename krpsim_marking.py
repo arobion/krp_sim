@@ -1,10 +1,12 @@
 from heapq import heappop, heappush
-import sys
 import time
+
 
 class Marking:
 
-    def __init__(self, cycle, place_tokens, transition_tokens, transitions, processed_cycle=0, out=""):
+    def __init__(
+            self, cycle, place_tokens, transition_tokens,
+            transitions, processed_cycle=0, out=""):
         self.cycle = cycle
         self.place_tokens = place_tokens
         self.transition_tokens = transition_tokens
@@ -49,11 +51,17 @@ class Marking:
                 self.nexts.append(current)
             return
 
-        # don't do this transition
-        next = Marking(self.cycle, current.place_tokens.copy(), current.transition_tokens.copy(), self.transitions, self.processed_cycle, current.out)
+        # 0 for this transition
+        next = Marking(
+            self.cycle,
+            current.place_tokens.copy(),
+            current.transition_tokens.copy(),
+            self.transitions,
+            self.processed_cycle,
+            current.out)
         self.get_transition_combinations(next, index + 1)
 
-        # do this transition 1+ time(s)
+        # more than 0 for this transition
         transition = self.transitions[self.transition_keys[index]]
         times = 1
         while self.can_do_transition(current, transition, times):
@@ -68,7 +76,13 @@ class Marking:
         return True
 
     def create_new_marking(self, current, transition, times):
-        next = Marking(self.cycle, current.place_tokens.copy(), current.transition_tokens.copy(), self.transitions, self.processed_cycle, current.out)
+        next = Marking(
+            self.cycle,
+            current.place_tokens.copy(),
+            current.transition_tokens.copy(),
+            self.transitions,
+            self.processed_cycle,
+            current.out)
 
         # update place_tokens
         for place_name, used_value in transition.input.items():
@@ -92,7 +106,8 @@ class Marking:
 
         #  Update place_tokens
         nearest = heappop(self.transition_tokens)
-        for place_name, added_value in self.transitions[nearest[1]].output.items():
+        for place_name, added_value in (
+                self.transitions[nearest[1]].output.items()):
             self.place_tokens[place_name] += added_value * nearest[2]
 
         return True
