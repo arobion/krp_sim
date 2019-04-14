@@ -12,10 +12,8 @@ class KrpsimGraph:
         self.delay = setting.delay_max
         self.places_inputs = setting.places_inputs
         self.places_outputs = setting.places_outputs
-#        self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transitions)
-        self.initial_marking = None
+        self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transitions)
         self.transformations = {}
-        # self.reduce()
 
     def __str__(self):
         out = ""

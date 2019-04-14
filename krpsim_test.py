@@ -185,7 +185,6 @@ def run_one_agent(krp, dico, random_set):
                 krp, krp.optimize[0], dico=dico, random_set=random_set)
         if dict_actions is None:
             break
-
         concatenate_dict(krp, dict_actions, out)
     return tuple((dico, krp, out))
 

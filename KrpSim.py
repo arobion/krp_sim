@@ -7,27 +7,29 @@ import copy
 
 
 def solve(krpsim):
-    bruteforce_result, is_timeout = bruteforce(copy.deepcopy(krpsim))
-    if not is_timeout:
-        print(bruteforce_result[2])
-        print(bruteforce_result[1])
+    # run brute force
+    bruteforce_result = bruteforce(copy.deepcopy(krpsim))
+    if not bruteforce_result.is_timeout:
+        print(bruteforce_result.out)
+        print(bruteforce_result)
         return
-    best_score, best_marking, best_random_set, best_out = poc(krpsim)
 
-    # Comparison with brute force approach
+    # run poc
+    best_score, best_marking, best_random_set, best_out = poc(copy.deepcopy(krpsim))
+
+    # compare results
     if (bruteforce_result[1].initial_marking.place_tokens[krpsim.optimize[0]] >
             best_score):
-        print(bruteforce_result[2])
+        print(bruteforce_result.out)
     else:
         print("{}".format(best_out[0]))
-        print_dico(best_random_set)
+        # print_dico(best_random_set)
         print(best_marking)
 
 
 def main():
     setting = Setting()
     krpsim = KrpsimGraph(setting)
-    krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(), [], krpsim.transitions)
     solve(krpsim)
 
 if __name__ == "__main__":

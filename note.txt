@@ -26,3 +26,10 @@ About greedy find ( recherche de maximum local a chaque fois ).
 l'idee est de ne plus avoir un choix random, mais un choix determine qui serait le meilleur possible parmis tout les choix disponibles.
 donc on va faire une fonction : get_local_maximum qui va renvoyer la meilleure selection.
 more in get_local_maximum's docstring
+
+
+TODO
+- handle time
+- stop when reach delay
+- infinite loop
+- error when poc can't find good output

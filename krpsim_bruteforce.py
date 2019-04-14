@@ -49,6 +49,5 @@ def bruteforce(krpsim):
         for next_one in nexts:
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
-
-    krpsim.initial_marking = best
-    return (None, krpsim, best.out), best.is_timeout
+    
+    return best
