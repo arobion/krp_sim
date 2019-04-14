@@ -3,7 +3,6 @@ import copy
 from krpsim_marking import Marking
 from heapq import heappop, heappush
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from krpsim_bruteforce import brute_force
 
 
 def simulate_transition(krp, sim, transition):
@@ -197,10 +196,11 @@ def poc(krp):
 
     iterations = 1
     nb_agents = 1
+
     best_marking = None
     best_score = 0
     best_random_set = None
-    brute_force_result = brute_force(copy.deepcopy(krp))
+
     for i in range(0, iterations):
         random_set = best_random_set
         futures = []
@@ -225,11 +225,4 @@ def poc(krp):
             krp.initial_marking = Marking(
                     0, krp.initial_place_tokens.copy(), [], krp.transitions)
 
-    # Comparison with brute force approach
-    if (brute_force_result[1].initial_marking.place_tokens[krp.optimize[0]] >
-            best_score):
-        print(brute_force_result[2])
-    else:
-        print("{}".format(best_out[0]))
-        print_dico(best_random_set)
-        print(best_marking)
+    return best_score, best_marking, best_random_set, best_out

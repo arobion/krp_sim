@@ -21,7 +21,7 @@ def is_visited(now, visited_place, visited_transition):
     return False
 
 
-def brute_force(krpsim):
+def bruteforce(krpsim):
     optimize = krpsim.optimize[0]
     queue = []
     visited_place = set()
