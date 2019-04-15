@@ -23,6 +23,8 @@ def main():
     try:
         for action in setting.actions:
             cycle, name = get_action(action)
+            if cycle < env.cycle:
+                raise ErrorOutput("Cycle problem in tracefile ({} < {})".format(cycle, env.cycle))
             env.update_cycle(cycle)
             env.process(name)
         print("VERIFICATION OK")
