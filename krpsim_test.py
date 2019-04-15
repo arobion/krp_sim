@@ -6,24 +6,46 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from krpsim_bruteforce import brute_force
 
 
-def simulate_transition(krp, sim, transition):
+def simulate_transition(krp, sim, transition, ghost):
     for place_name, quantity in transition.input.items():
         sim.place_tokens[place_name] -= quantity
+    tmp = copy.deepcopy(sim)
     for place_name, quantity in transition.output.items():
         sim.place_tokens[place_name] += quantity
 
+    for place_name, quantity in transition.input.items():
+        if place_name in transition.output.keys():
+            if sim.place_tokens[place_name] >= 0:
+                if quantity == transition.output[place_name]:
+                    if krp.initial_marking.place_tokens[place_name] < quantity:
+                        ghost.append([place_name, sim.place_tokens[place_name] - quantity])
+#                        print(place_name, sim.place_tokens[place_name], transition)
+#                        print(sim)
 
-def get_next_optimize(sim):
+
+def get_next_optimize(sim, ghost, krp):
     possible_return = []
     for place_name, quantity in sim.place_tokens.items():
         if quantity < 0:
             possible_return.append(place_name)
     if len(possible_return) == 0:
-        return None
+        if len(ghost) == 0:
+            return None
+        else:
+            elem = ghost.pop(0)
+            diff = krp.initial_marking.place_tokens[elem[0]] + elem[1]
+            if diff < 0:
+                sim.place_tokens[elem[0]] = diff
+                return elem[0]
+            return None
     return (possible_return[random.randint(0, len(possible_return) - 1)])
 
 
-def update_dico(action, dico, optimize):
+def update_dico(krp, action, dico, optimize):
+    for elem in krp.transitions.values():
+        if action.name == elem.name:
+            action = elem
+            break 
     if optimize not in dico.keys():
         dico[optimize] = {action: 1}
     elif action not in dico[optimize].keys():
@@ -60,52 +82,90 @@ def no_positive_actions(possible_actions, current_optimize):
     return True
 
 
-def requirements_marking(transition, sim, optimize):
+def drop_unvalid_actions(possible_actions, krp, sim, list_actions, optimize):
+    index = 0
+    total_len = len(possible_actions)
+
+    # check if the action is possitive
+    while index < total_len:
+        elem = possible_actions[index]
+        if optimize in elem.input.keys():
+            if (elem.output[optimize] - elem.input[optimize] <= 0):
+                possible_actions.pop(index)
+                total_len -= 1
+                continue
+        index += 1
+
+    index = 0
+    total_len = len(possible_actions)
+
+    # check if the actions is firable
+    while index < total_len:
+        elem = possible_actions[index]
+        if optimize in elem.input.keys():
+            if requirements_marking(elem, sim, list_actions, optimize) is False:
+                possible_actions.pop(index)
+                total_len -= 1
+                continue
+        index += 1
+
+#    for elem in possible_actions:
+#        print(elem)
+#    print("\n")
+
+
+def requirements_marking(transition, sim, list_actions, optimize):
+    total_to_add = 0
+    for elem in list_actions:
+        if optimize in elem.input.keys():
+            total_to_add += elem.input[optimize]
     for place, value in transition.input.items():
-        if sim.place_tokens[place] - value < 0 and optimize == place:
+        if sim.place_tokens[place] + total_to_add - value < 0:
+#            print(transition)
             return False
     return True
 
 
-def create_one_unit_action_2(
-        krp, optimize, forced_action=None,
-        dico={}, random_set=None):
+def create_one_unit_action_2(krp, optimize, dico={}, random_set=None):
 
     list_actions = []
     current_optimize = optimize
+    ghost_optimizes = []
     simulated_marking = copy.deepcopy(krp.initial_marking)
 
     while current_optimize:
         if current_optimize not in krp.places_outputs:
             return None, None
 
-        possible_actions = krp.places_outputs[current_optimize]
+        possible_actions = copy.deepcopy(krp.places_outputs[current_optimize])
+        drop_unvalid_actions(possible_actions, krp, simulated_marking, list_actions, current_optimize)
+#        if len(possible_actions) == 0: # checked in positive_actions
+#            return None, None
 
         # check dead loop
         if no_positive_actions(possible_actions, current_optimize) is True:
             return None, None
 
-        if forced_action in possible_actions:
-            selection = forced_action
-        else:
-            selection = get_random_action(
-                random_set, possible_actions, current_optimize)
+        selection = get_random_action(
+            random_set, possible_actions, current_optimize)
 
         # check if the action is possitive
-        if current_optimize in selection.input.keys():
-            if (selection.output[current_optimize] -
-                    selection.input[current_optimize]) <= 0:
-                continue
+#        if current_optimize in selection.input.keys():
+#            if (selection.output[current_optimize] -
+#                    selection.input[current_optimize]) <= 0:
+#                continue
+
+        # check if the actions is firable
+#        if current_optimize in selection.input.keys():
+#            if requirements_marking(selection, simulated_marking, list_actions, current_optimize) is False:
+#                continue
 
         # update true random
         if len(possible_actions) > 1:
-            update_dico(selection, dico, current_optimize)
+            update_dico(krp, selection, dico, current_optimize)
 
-        if requirements_marking(
-                selection, simulated_marking, current_optimize) is False:
-            continue
-        simulate_transition(krp, simulated_marking, selection)
-        current_optimize = get_next_optimize(simulated_marking)
+        simulate_transition(krp, simulated_marking, selection, ghost_optimizes)
+        current_optimize = get_next_optimize(simulated_marking, ghost_optimizes, krp)
 
         list_actions.insert(0, selection)
 
@@ -186,6 +246,10 @@ def run_one_agent(krp, dico, random_set):
                 krp, krp.optimize[0], dico=dico, random_set=random_set)
         if dict_actions is None:
             break
+#        for elem in dict_actions:
+#            print(elem)
+#        print("")
+#        print(sim)
 
         concatenate_dict(krp, dict_actions, out)
     return tuple((dico, krp, out))
@@ -200,6 +264,7 @@ def poc(krp):
     best_marking = None
     best_score = 0
     best_random_set = None
+    best_out = None
     brute_force_result = brute_force(copy.deepcopy(krp))
     for i in range(0, iterations):
         random_set = best_random_set
@@ -230,6 +295,9 @@ def poc(krp):
             best_score):
         print(brute_force_result[2])
     else:
-        print("{}".format(best_out[0]))
-        print_dico(best_random_set)
-        print(best_marking)
+        if best_out:
+            print("{}".format(best_out[0]))
+            print_dico(best_random_set)
+            print(best_marking)
+        else:
+            print("Not enough delay")
