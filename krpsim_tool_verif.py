@@ -50,8 +50,7 @@ class Env():
         for stock, quant in ref_process.input.items():
             self.conf.stock[stock] -= quant
             if self.conf.stock[stock] < 0:
-                print(self.conf.stock)
-                raise KRPError("Algorithm Error at cycle {} on process '{}': it's impossible to use more stock than available".format(self.cycle, name))
+                raise KRPError("Algorithm Error at cycle {} on process '{}', place '{}': it's impossible to use more stock than available".format(self.cycle, name, stock))
         new_process.output = ref_process.output
         new_process.cycle_ending = self.cycle + ref_process.duration
         self.active_process.append(new_process)
