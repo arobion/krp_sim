@@ -19,7 +19,5 @@ class Transition():
                 self.output[elem] += other.output[elem]
 
     def __str__(self):
-        return "{}: {} {} {}".format(self.name, self.input, self.output, self.duration)
-
-    #  def __repr__(self):
-    #     return "transition({} {} {})".format(self.input, self.output, self.duration)
+        return ("{}: {} {} {}".format(self.name,
+                self.input, self.output, self.duration))

@@ -1,5 +1,6 @@
 from krpsim_tool_verif import Setting, Config_structure, Env
-from krpsim_error import *
+from krpsim_error import ErrorOutput, CustomError
+
 
 def get_action(action):
     tab = action.split(':')
@@ -7,7 +8,7 @@ def get_action(action):
         raise ErrorOutput("KRP Error: Bad output from the KRP_SIM trace")
     try:
         cycle = int(tab[0])
-    except:
+    except Exception:
         raise ErrorOutput("KRP Error: Cycle should be a valid integer")
     return cycle, tab[1]
 
@@ -29,6 +30,5 @@ def main():
         print(err)
 
 
-
 if __name__ == "__main__":
-        main()
+    main()

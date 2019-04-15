@@ -1,4 +1,4 @@
-from krpsim_error import *
+from krpsim_error import ErrorInput, KRPError
 from pathlib import Path
 import argparse
 import sys
@@ -137,23 +137,27 @@ class Setting():
                 delay = int(right[0])
                 p.duration = delay
                 return p
-            except:
-                raise ErrorInput("Process Error: Delay must be a valid integer")
+            except Exception:
+                raise ErrorInput("Process Error: Delay "
+                                 "must be a valid integer")
 
         for outputs in right[0].split(';'):
             single_output = outputs.split(':')
             if len(single_output) != 2:
-                raise ErrorInput("Process Error: bad declaration of a Process")
+                raise ErrorInput("Process Error: bad "
+                                 "declaration of a Process")
             output_name = single_output[0]
             try:
                 quantity = int(single_output[1])
-            except:
-                raise ErrorInput("Process Error: Quantity must be a valid integer")
+            except Exception:
+                raise ErrorInput("Process Error: Quantity "
+                                 "must be a valid integer")
             try:
                 delay = int(right[1])
                 p.duration = delay
-            except:
-                raise ErrorInput("Process Error: Delay must be a valid integer")
+            except Exception:
+                raise ErrorInput("Process Error: Delay "
+                                 "must be a valid integer")
             p.output[output_name] = quantity
             if output_name not in self.stock.keys():
                 self.stock[output_name] = 0
@@ -166,7 +170,6 @@ class Setting():
             raise ErrorInput("Config file Error: Config file is unvalid")
         if line[0] != "optimize":
             raise ErrorInput("Config file Error: Config file is unvalid")
-
 
     def check_trace_file(self, trace_file):
         line = trace_file.readline()
