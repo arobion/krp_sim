@@ -9,17 +9,22 @@ import copy
 def solve(krpsim):
     bruteforce_result, is_timeout = bruteforce(copy.deepcopy(krpsim))
     if not is_timeout:
-        print(bruteforce_result[2])
-        print(bruteforce_result[1])
+        with open("trace", "w") as f:
+            f.write(bruteforce_result[2])
+        print(bruteforce_result[1].initial_marking)
         return
+    print("brute force timed out, switch to colibri algorithm")
     best_score, best_marking, best_random_set, best_out = poc(krpsim)
 
     # Comparison with brute force approach
     if (bruteforce_result[1].initial_marking.place_tokens[krpsim.optimize[0]] >
             best_score):
-        print(bruteforce_result[2])
+        with open("trace", "w") as f:
+            f.write(bruteforce_result[2])
+        print(bruteforce_result[1].initial_marking)
     else:
-        print("{}".format(best_out[0]))
+        with open("trace", "w") as f:
+            f.write(best_out[0])
         print_dico(best_random_set)
         print(best_marking)
 

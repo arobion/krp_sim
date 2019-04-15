@@ -51,4 +51,6 @@ def bruteforce(krpsim):
             next_one.prev = now
 
     krpsim.initial_marking = best
+    if time.time() - start_time > 3:
+        best.is_timeout = True
     return (None, krpsim, best.out), best.is_timeout
