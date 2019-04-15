@@ -1,4 +1,5 @@
 *.pyc
+<<<<<<< HEAD
 __pycache__
 *env
 *.sql
@@ -9,3 +10,6 @@ db.*
 *.pickle
 *.mmg
 *.pickle
+=======
+*.swp
+>>>>>>> 81b591fb1b922c09b164a533625322e35e880ce4
