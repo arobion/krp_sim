@@ -7,6 +7,10 @@ import copy
 
 
 def solve(krpsim):
+    # handle time in optimize
+    for elem in krpsim.optimize:
+        if elem == "time":
+            del krpsim.optimize[krpsim.optimize.index(elem)]
     bruteforce_result, is_timeout = bruteforce(copy.deepcopy(krpsim))
     bruteforce_result[1].initial_marking.transition_tokens = []
     if not is_timeout:
