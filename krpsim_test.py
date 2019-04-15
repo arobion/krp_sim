@@ -17,9 +17,8 @@ def simulate_transition(krp, sim, transition, ghost):
             if sim.place_tokens[place_name] >= 0:
                 if quantity == transition.output[place_name]:
                     if krp.initial_marking.place_tokens[place_name] < quantity:
-                        ghost.append([place_name, sim.place_tokens[place_name] - quantity])
-#                        print(place_name, sim.place_tokens[place_name], transition)
-#                        print(sim)
+                        ghost.append([place_name,
+                                     sim.place_tokens[place_name] - quantity])
 
 
 def get_next_optimize(sim, ghost, krp):
@@ -44,7 +43,7 @@ def update_dico(krp, action, dico, optimize):
     for elem in krp.transitions.values():
         if action.name == elem.name:
             action = elem
-            break 
+            break
     if optimize not in dico.keys():
         dico[optimize] = {action: 1}
     elif action not in dico[optimize].keys():
@@ -102,7 +101,8 @@ def drop_unvalid_actions(possible_actions, krp, sim, list_actions, optimize):
     while index < total_len:
         elem = possible_actions[index]
         if optimize in elem.input.keys():
-            if requirements_marking(elem, sim, list_actions, optimize) is False:
+            if requirements_marking(elem, sim,
+                                    list_actions, optimize) is False:
                 possible_actions.pop(index)
                 total_len -= 1
                 continue
@@ -120,12 +120,12 @@ def requirements_marking(transition, sim, list_actions, optimize):
             total_to_add += elem.input[optimize]
     for place, value in transition.input.items():
         if sim.place_tokens[place] + total_to_add - value < 0:
-#            print(transition)
             return False
     return True
 
 
-def create_one_unit_action_2(krp, optimize, start_time, dico={}, random_set=None):
+def create_one_unit_action_2(krp, optimize,
+                             start_time, dico={}, random_set=None):
 
     list_actions = []
     current_optimize = optimize
@@ -140,34 +140,25 @@ def create_one_unit_action_2(krp, optimize, start_time, dico={}, random_set=None
             return None, None
 
         possible_actions = copy.deepcopy(krp.places_outputs[current_optimize])
-        drop_unvalid_actions(possible_actions, krp, simulated_marking, list_actions, current_optimize)
-        if len(possible_actions) == 0: # checked in positive_actions
+        drop_unvalid_actions(possible_actions, krp,
+                             simulated_marking, list_actions, current_optimize)
+        if len(possible_actions) == 0:
             return None, None
 
-        # check dead loop
+        #  check dead loop
         if no_positive_actions(possible_actions, current_optimize) is True:
             return None, None
 
         selection = get_random_action(
             random_set, possible_actions, current_optimize)
 
-        # check if the action is possitive
-#        if current_optimize in selection.input.keys():
-#            if (selection.output[current_optimize] -
-#                    selection.input[current_optimize]) <= 0:
-#                continue
-
-        # check if the actions is firable
-#        if current_optimize in selection.input.keys():
-#            if requirements_marking(selection, simulated_marking, list_actions, current_optimize) is False:
-#                continue
-
-        # update true random
         if len(possible_actions) > 1:
             update_dico(krp, selection, dico, current_optimize)
 
-        simulate_transition(krp, simulated_marking, selection, ghost_optimizes)
-        current_optimize = get_next_optimize(simulated_marking, ghost_optimizes, krp)
+        simulate_transition(krp, simulated_marking,
+                            selection, ghost_optimizes)
+        current_optimize = get_next_optimize(simulated_marking,
+                                             ghost_optimizes, krp)
 
         list_actions.insert(0, selection)
 
@@ -181,7 +172,7 @@ def concatenate_dict(krp, list_actions, out, start_time):
             print("One thread had timeout")
             return True
 #        if current_cycle > krp.delay:
-#            return 
+#            return
         index = 0
         total_len = len(list_actions)
         while index < total_len:
@@ -196,19 +187,19 @@ def concatenate_dict(krp, list_actions, out, start_time):
     krp.initial_marking.cycle = current_cycle
 
 
-def get_firable_times(krp, transition, times):
-    for fireable_times in range(times, 1):
-        if is_firable(krp, transition, fireable_times):
-            return fireable_times
-    return 1
-
-
 def is_fireable(krp, transition, times):
     for place_name, required_value in transition.input.items():
         if (krp.initial_marking.place_tokens[place_name] <
                 required_value * times):
             return False
     return True
+
+
+def get_firable_times(krp, transition, times):
+    for fireable_times in range(times, 1):
+        if is_fireable(krp, transition, fireable_times):
+            return fireable_times
+    return 1
 
 
 def fire_transition(krp, transition, current_cycle, times, out):
@@ -296,6 +287,7 @@ def poc(krp):
                 best_out = res.result()[2]
             krp.initial_marking = Marking(
                     0, krp.initial_place_tokens.copy(), [], krp.transitions)
-        print("generation {} done. Current score = {}".format(gen + 1, best_score))
+        print("generation {} done. "
+              "Current score = {}".format(gen + 1, best_score))
 
     return best_score, best_marking, best_random_set, best_out

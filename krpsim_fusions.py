@@ -23,7 +23,8 @@ class SerialFusion:
                 continue
 
             # rule 3: place p is disconnected from all other transitions
-            # first check if there is place(s) in places_inputs and places_output
+            # first check if there is place(s) in
+            # places_inputs and places_output
             # then check if the len is 1 or not
             if (place not in self.krp.places_inputs or
                     place not in self.krp.places_outputs or
@@ -49,7 +50,8 @@ class SerialFusion:
         name = t1.name + "+" + t2.name
         inputs = t1.input
         outputs = t2.output
-        tf = Transition(name=name, input=inputs, output=outputs, duration=duration)
+        tf = Transition(name=name, input=inputs,
+                        output=outputs, duration=duration)
         self.krp.transitions[tf.name] = tf
         self.krp.transformations[tf] = [t1, t2]
         self.krp.transitions.pop(t1.name)
@@ -75,7 +77,7 @@ class PreFusion:
         self.krp = krp
 
     def detect(self):
-        unmarked_places = find_unmarked_places(self.krp)
+        find_unmarked_places(self.krp)
         return False
         print("Doing prefusion")
 
@@ -133,11 +135,13 @@ class LateralTransitionsFusionOne:
     def remove_transition(self, tf, transition):
         self.krp.transitions.pop(transition.name)
         for elem in transition.input:
-            self.krp.places_inputs[elem].pop(self.krp.places_inputs[elem].index(transition))
+            (self.krp.places_inputs[elem].
+             pop(self.krp.places_inputs[elem].index(transition)))
             if tf not in self.krp.places_inputs[elem]:
                 self.krp.places_inputs[elem].append(tf)
         for elem in transition.output:
-            self.krp.places_outputs[elem].pop(self.krp.places_outputs[elem].index(transition))
+            (self.krp.places_outputs[elem].pop
+             (self.krp.places_outputs[elem].index(transition)))
             self.krp.places_outputs[elem].append(tf)
 
     def merge_transition(self, tf, transition):
@@ -204,7 +208,8 @@ class LateralPlacesFusion:
                     if len(self.krp.places_inputs[place]) != 1:
                         rule_3 = False
                 rule_4.add(self.krp.initial_place_tokens[place])
-            if rule_2 is True and rule_3 is True and len(rule_4) == 1 and len(rule_3_store) == 1:
+            if (rule_2 is True and rule_3 is True and
+                    len(rule_4) == 1 and len(rule_3_store) == 1):
                 print('doing lateral places fusion')
                 self.proceed(P)
                 return True
@@ -251,7 +256,7 @@ class LateralPlacesFusion:
 
 
 #################################################################
-###################  FINDING ITEMS PART #########################
+#                    FINDING ITEMS PART                         #
 #################################################################
 
 def find_same_input_places(krp):
@@ -260,8 +265,10 @@ def find_same_input_places(krp):
         sub_ret = set()
         for elem_2 in krp.initial_place_tokens.keys():
             if elem_1 != elem_2:
-                if elem_1 in krp.places_outputs and elem_2 in krp.places_outputs:
-                    if krp.places_outputs[elem_1] == krp.places_outputs[elem_2]:
+                if (elem_1 in krp.places_outputs and
+                        elem_2 in krp.places_outputs):
+                    if (krp.places_outputs[elem_1]
+                            == krp.places_outputs[elem_2]):
                         sub_ret.add(elem_1)
                         sub_ret.add(elem_2)
         if sub_ret not in ret and len(sub_ret) != 0:

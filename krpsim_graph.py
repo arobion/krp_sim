@@ -1,5 +1,6 @@
-from krpsim_marking import Marking
-from krpsim_fusions import SerialFusion, PreFusion, LateralTransitionsFusionOne, LateralTransitionsFusionTwo, LateralPlacesFusion
+from krpsim_fusions import SerialFusion, PreFusion
+from krpsim_fusions import LateralTransitionsFusionOne
+from krpsim_fusions import LateralTransitionsFusionTwo, LateralPlacesFusion
 
 
 class KrpsimGraph:
@@ -12,7 +13,6 @@ class KrpsimGraph:
         self.delay = setting.delay_max
         self.places_inputs = setting.places_inputs
         self.places_outputs = setting.places_outputs
-#        self.initial_marking = Marking(0, self.initial_place_tokens.copy(), [], self.transitions)
         self.initial_marking = None
         self.transformations = {}
         # self.reduce()

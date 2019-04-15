@@ -64,7 +64,7 @@ class Setting():
             raise InputError("Stock Error: Invalid stock name format")
         try:
             quant = int(instr[1])
-        except:
+        except Exception:
             raise InputError("Stock Error: Quantity should be a valid integer")
         self.initial_place_tokens[label] = quant
 
@@ -80,7 +80,8 @@ class Setting():
             transition = self.parse_transition(tmp_instr)
             self.transitions[transition.name] = transition
 
-    def parse_transition_inputs(self, transition, inputs):
+    def parse_transition_inputs(self,
+                                transition, inputs):
         for entry in inputs.split(';'):
             entry_split = entry.split(':')
             if len(entry_split) != 2:
@@ -89,8 +90,9 @@ class Setting():
             input_value = entry_split[1]
             try:
                 quantity = int(input_value)
-            except:
-                raise InputError("Process Error: Quantity must be a valid integer")
+            except Exception:
+                raise InputError("Process Error: "
+                                 "Quantity must be a valid integer")
             transition.input[input_name] = quantity
             if input_name not in self.places_inputs.keys():
                 self.places_inputs[input_name] = []
@@ -105,8 +107,9 @@ class Setting():
             output_value = entry_split[1]
             try:
                 quantity = int(output_value)
-            except:
-                raise InputError("Process Error: Quantity must be a valid integer")
+            except Exception:
+                raise InputError("Process Error: "
+                                 "Quantity must be a valid integer")
             transition.output[output_name] = quantity
             if output_name not in self.initial_place_tokens.keys():
                 self.initial_place_tokens[output_name] = 0
@@ -118,7 +121,8 @@ class Setting():
         transition = Transition("", {}, {}, 0)
         name_inputs = instr[0].split(':(')
         if len(name_inputs) < 2:
-            raise InputError("Process Error: any Process need resources or name")
+            raise InputError("Process Error: any "
+                             "Process need resources or name")
         name = name_inputs[0]
         inputs = name_inputs[1]
 
@@ -130,8 +134,9 @@ class Setting():
                 delay = int(outputs_delay[0])
                 transition.duration = delay
                 return transition
-            except:
-                raise InputError("Process Error: Delay must be a valid integer")
+            except Exception:
+                raise InputError("Process Error: Delay "
+                                 "must be a valid integer")
 
         if len(outputs_delay) != 2:
             raise InputError("Process Error : Bad process declaration")
@@ -142,7 +147,7 @@ class Setting():
         try:
             delay = int(delay)
             transition.duration = delay
-        except:
+        except Exception:
             raise InputError("Process Error: Delay must be a valid integer")
         return transition
 

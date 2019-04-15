@@ -27,7 +27,7 @@ def solve(krpsim):
         best_marking.transition_tokens = []
 
     # Comparison with brute force approach
-    if best_out == None:
+    if best_out is None:
         print("Unable to find a solution, file is too complex")
         return
     if (bruteforce_result[1].initial_marking.place_tokens[krpsim.optimize[0]] >
@@ -45,10 +45,10 @@ def solve(krpsim):
 def main():
     setting = Setting()
     krpsim = KrpsimGraph(setting)
-    krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(), [], krpsim.transitions)
+    krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(),
+                                     [], krpsim.transitions)
     solve(krpsim)
+
 
 if __name__ == "__main__":
     main()
-
-
