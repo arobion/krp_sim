@@ -180,8 +180,8 @@ def concatenate_dict(krp, list_actions, out, start_time):
         if time.time() - start_time > 2:
             print("One thread had timeout")
             return True
-        if current_cycle > krp.delay:
-            return 
+#        if current_cycle > krp.delay:
+#            return 
         index = 0
         total_len = len(list_actions)
         while index < total_len:
