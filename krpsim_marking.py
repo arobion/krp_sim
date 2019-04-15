@@ -18,6 +18,7 @@ class Marking:
         self.start_time = 0
         self.timeout = 3
         self.out = out
+        self.is_timeout = False
 
     def __lt__(self, other):
         return (self.processed_cycle > other.processed_cycle)
@@ -42,6 +43,7 @@ class Marking:
     def get_transition_combinations(self, current, index):
         # stop if timeout
         if time.time() > self.start_time + self.timeout:
+            self.is_timeout = True
             return
 
         # stop when run through all transition

@@ -21,7 +21,7 @@ def is_visited(now, visited_place, visited_transition):
     return False
 
 
-def brute_force(krpsim):
+def bruteforce(krpsim):
     optimize = krpsim.optimize[0]
     queue = []
     visited_place = set()
@@ -50,4 +50,5 @@ def brute_force(krpsim):
             heappush(queue, (next_one.cycle, next_one))
             next_one.prev = now
 
-    return (None, krpsim, best.out)
+    krpsim.initial_marking = best
+    return (None, krpsim, best.out), best.is_timeout
