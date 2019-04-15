@@ -1,5 +1,6 @@
 import random
 import copy
+import time
 from krpsim_marking import Marking
 from heapq import heappop, heappush
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -124,7 +125,7 @@ def requirements_marking(transition, sim, list_actions, optimize):
     return True
 
 
-def create_one_unit_action_2(krp, optimize, dico={}, random_set=None):
+def create_one_unit_action_2(krp, optimize, start_time, dico={}, random_set=None):
 
     list_actions = []
     current_optimize = optimize
@@ -134,11 +135,14 @@ def create_one_unit_action_2(krp, optimize, dico={}, random_set=None):
     while current_optimize:
         if current_optimize not in krp.places_outputs:
             return None, None
+        if time.time() - start_time > 2:
+            print("One thread had timeout")
+            return None, None
 
         possible_actions = copy.deepcopy(krp.places_outputs[current_optimize])
         drop_unvalid_actions(possible_actions, krp, simulated_marking, list_actions, current_optimize)
-#        if len(possible_actions) == 0: # checked in positive_actions
-#            return None, None
+        if len(possible_actions) == 0: # checked in positive_actions
+            return None, None
 
         # check dead loop
         if no_positive_actions(possible_actions, current_optimize) is True:
@@ -170,9 +174,14 @@ def create_one_unit_action_2(krp, optimize, dico={}, random_set=None):
     return list_actions, simulated_marking
 
 
-def concatenate_dict(krp, list_actions, out):
+def concatenate_dict(krp, list_actions, out, start_time):
     current_cycle = krp.initial_marking.cycle
     while (len(list_actions)):
+        if time.time() - start_time > 2:
+            print("One thread had timeout")
+            return True
+        if current_cycle > krp.delay:
+            return 
         index = 0
         total_len = len(list_actions)
         while index < total_len:
@@ -240,16 +249,15 @@ def print_dico(dico):
 def run_one_agent(krp, dico, random_set):
     out = [""]
     while krp.initial_marking.cycle < krp.delay:
+        begin = time.time()
         dict_actions, sim = create_one_unit_action_2(
-                krp, krp.optimize[0], dico=dico, random_set=random_set)
+                krp, krp.optimize[0], begin, dico=dico, random_set=random_set)
         if dict_actions is None:
             break
-#        for elem in dict_actions:
-#            print(elem)
-#        print("")
-#        print(sim)
-
-        concatenate_dict(krp, dict_actions, out)
+        begin = time.time()
+        timeout = concatenate_dict(krp, dict_actions, out, begin)
+        if timeout is True:
+            break
     return tuple((dico, krp, out))
 
 
@@ -265,7 +273,7 @@ def poc(krp):
     best_random_set = None
     best_out = None
 
-    for i in range(0, iterations):
+    for gen in range(0, iterations):
         random_set = best_random_set
         futures = []
         with ProcessPoolExecutor(max_workers=nb_agents) as pool:
@@ -288,5 +296,6 @@ def poc(krp):
                 best_out = res.result()[2]
             krp.initial_marking = Marking(
                     0, krp.initial_place_tokens.copy(), [], krp.transitions)
+        print("generation {} done. Current score = {}".format(gen + 1, best_score))
 
     return best_score, best_marking, best_random_set, best_out
