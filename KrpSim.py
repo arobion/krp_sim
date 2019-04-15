@@ -19,7 +19,8 @@ def solve(krpsim):
         return
     print("brute force timed out, switch to colibri algorithm")
     best_score, best_marking, best_random_set, best_out = poc(krpsim)
-    best_marking.transition_tokens = []
+    if best_marking:
+        best_marking.transition_tokens = []
 
     # Comparison with brute force approach
     if best_out == None:
