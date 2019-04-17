@@ -64,7 +64,7 @@ class KrpsimGraph:
             raise Exception("No ressources declared")
 
         # check transitions are ok
-        full_ressources = []
+        full_ressources = ['time']
         for name, transition in self.transitions.items():
             if name == "":
                 raise Exception("Empty name for transition")
