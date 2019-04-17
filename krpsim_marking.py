@@ -27,7 +27,6 @@ class Marking:
         ret = ""
         ret += "cycle:{}\n".format(self.cycle)
         ret += "place_tokens:{}\n".format(self.place_tokens)
-        ret += "transition_tokens:{}\n".format(self.transition_tokens)
         return (ret)
 
     def simulate_transition(self, name):
