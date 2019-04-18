@@ -44,10 +44,12 @@ def solve(krpsim):
 
 def main():
     setting = Setting()
+    #setting.check_coherence()
     krpsim = KrpsimGraph(setting)
-    krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(),
-                                     [], krpsim.transitions)
-    solve(krpsim)
+    print(krpsim)
+    # krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(),
+    #                                  [], krpsim.transitions)
+    # solve(krpsim)
 
 
 if __name__ == "__main__":
