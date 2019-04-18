@@ -58,13 +58,13 @@ class KrpsimGraph:
             if token != 0:
                 empty_ressources = False
             if token < 0:
-               raise Exception("Negative ressource declared") 
+                raise Exception("Negative ressource declared")
             ressources.append(name)
         if empty_ressources:
             raise Exception("No ressources declared")
 
         # check transitions are ok
-        full_ressources = []
+        full_ressources = ['time']
         for name, transition in self.transitions.items():
             if name == "":
                 raise Exception("Empty name for transition")
@@ -85,4 +85,4 @@ class KrpsimGraph:
             raise Exception("Optimize missing")
         for elem in self.optimize:
             if elem not in full_ressources:
-               raise Exception("Ressource to optimize not in transitions") 
+                raise Exception("Ressource to optimize not in transitions")

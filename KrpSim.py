@@ -8,6 +8,13 @@ import copy
 
 def solve(krpsim):
     # handle time in optimize
+    try:
+        f = open("trace", "w")
+        f.close()
+    except Exception as e:
+        print(e)
+        return
+
     for elem in krpsim.optimize:
         if elem == "time":
             del krpsim.optimize[krpsim.optimize.index(elem)]
@@ -23,8 +30,7 @@ def solve(krpsim):
         return
     print("brute force timed out, switch to colibri algorithm")
     best_score, best_marking, best_random_set, best_out = poc(krpsim)
-    if best_marking:
-        best_marking.transition_tokens = []
+    print("")
 
     # Comparison with brute force approach
     if best_out is None:
@@ -43,13 +49,15 @@ def solve(krpsim):
 
 
 def main():
-    setting = Setting()
-    #setting.check_coherence()
-    krpsim = KrpsimGraph(setting)
-    print(krpsim)
-    # krpsim.initial_marking = Marking(0, krpsim.initial_place_tokens.copy(),
-    #                                  [], krpsim.transitions)
-    # solve(krpsim)
+    try:
+        setting = Setting()
+        krpsim = KrpsimGraph(setting)
+        krpsim.initial_marking = Marking(0,
+                                         krpsim.initial_place_tokens.copy(),
+                                         [], krpsim.transitions)
+        solve(krpsim)
+    except Exception as e:
+        print("Error:", e)
 
 
 if __name__ == "__main__":
