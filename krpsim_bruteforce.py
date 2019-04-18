@@ -14,18 +14,17 @@ def is_better(m1, m2, optimize):
     return False
 
 
-def is_visited(now, visited_place, visited_transition):
-    if tuple(now.place_tokens.items()) in visited_place:
-        if tuple(now.transition_tokens) in visited_transition:
-            return True
+def is_visited(now, visited):
+    tup = (tuple(now.place_tokens.items()), tuple(now.transition_tokens))
+    if tup in visited:
+        return True
     return False
 
 
 def bruteforce(krpsim):
     optimize = krpsim.optimize[0]
     queue = []
-    visited_place = set()
-    visited_transition = set()
+    visited = set()
     best = krpsim.initial_marking
     heappush(queue, (krpsim.initial_marking.cycle, krpsim.initial_marking))
     start_time = time.time()
@@ -38,11 +37,11 @@ def bruteforce(krpsim):
         if is_better(now, best, optimize):
             best = now
 
-        if is_visited(now, visited_place, visited_transition):
+        if is_visited(now, visited):
             continue
 
-        visited_place.add(tuple(now.place_tokens.items()))
-        visited_transition.add(tuple(now.transition_tokens))
+        tup = (tuple(now.place_tokens.items()), tuple(now.transition_tokens))
+        visited.add(tup)
 
         nexts = now.get_nexts(start_time)
 
