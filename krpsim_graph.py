@@ -15,8 +15,8 @@ class KrpsimGraph:
         self.places_outputs = setting.places_outputs
         self.initial_marking = None
         self.transformations = {}
+        self.remove_dead_branches()
         self.check_coherency()
-        # self.reduce()
 
     def __str__(self):
         out = ""
@@ -48,6 +48,18 @@ class KrpsimGraph:
             if lpf.detect():
                 continue
             break
+    
+    def remove_dead_branches(self):
+        new_transitions = {}
+        in_transitions = []
+        for name, transition in self.transitions.items():
+            for k, v in transition.input.items():
+                in_transitions.append(k)
+        for name, transition in self.transitions.items():
+            for k, v in transition.output.items():
+                if k in in_transitions or k in self.optimize:
+                    new_transitions[name] = transition
+        self.transitions = new_transitions
 
     def check_coherency(self):
 
