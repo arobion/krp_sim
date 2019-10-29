@@ -1,15 +1,3 @@
 *.pyc
-<<<<<<< HEAD
 __pycache__
-*env
-*.sql
-django_env
-db.*
-.*.swp
-.DS_*
-*.pickle
-*.mmg
-*.pickle
-=======
 *.swp
->>>>>>> 81b591fb1b922c09b164a533625322e35e880ce4
